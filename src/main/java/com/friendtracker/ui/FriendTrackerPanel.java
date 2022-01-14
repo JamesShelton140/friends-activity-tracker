@@ -48,6 +48,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.client.hiscore.HiscoreClient;
@@ -71,6 +72,7 @@ public class FriendTrackerPanel extends PluginPanel
     private final HiscoreClient hiscoreClient;
 
     // List of friend boxes
+    @Getter
     private final Map<String, FriendTrackerBox> friendBoxes = new HashMap<>();
 
     // Handle friend boxes
@@ -177,6 +179,7 @@ public class FriendTrackerPanel extends PluginPanel
             friendBoxContainer.add(friendBox);
             friendBoxContainer.revalidate();
             friendBoxContainer.repaint();
+            plugin.buildSaveFile();
         });
 
         remove(errorPanel);
