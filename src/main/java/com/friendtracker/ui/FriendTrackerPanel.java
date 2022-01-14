@@ -1,5 +1,33 @@
+/*
+ * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
+ * Copyright (c) 2019, Bram91 <https://github.com/bram91>
+ * Copyright (c) 2022, James Shelton <https://github.com/JamesShelton140>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.friendtracker.ui;
 
+import com.friendtracker.Friend;
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
 import com.google.common.base.Strings;
@@ -7,8 +35,11 @@ import com.google.common.collect.ImmutableList;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.swing.BoxLayout;
@@ -17,66 +48,33 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.client.hiscore.HiscoreClient;
 import net.runelite.client.hiscore.HiscoreEndpoint;
+import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
 import static net.runelite.client.hiscore.HiscoreSkill.*;
-import net.runelite.client.hiscore.HiscoreSkillType;
-import net.runelite.client.plugins.hiscore.HiscoreConfig;
-import net.runelite.client.plugins.hiscore.HiscorePlugin;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.ui.components.IconTextField;
 import net.runelite.client.ui.components.PluginErrorPanel;
 import okhttp3.OkHttpClient;
 
+@Slf4j
 public class FriendTrackerPanel extends PluginPanel
 {
-    /**
-     * Real skills, ordered in the way they should be displayed in the panel.
-     */
-    private static final List<HiscoreSkill> SKILLS = ImmutableList.of(
-            ATTACK, HITPOINTS, MINING,
-            STRENGTH, AGILITY, SMITHING,
-            DEFENCE, HERBLORE, FISHING,
-            RANGED, THIEVING, COOKING,
-            PRAYER, CRAFTING, FIREMAKING,
-            MAGIC, FLETCHING, WOODCUTTING,
-            RUNECRAFT, SLAYER, FARMING,
-            CONSTRUCTION, HUNTER
-    );
-
-    /**
-     * Bosses, ordered in the way they should be displayed in the panel.
-     */
-    private static final List<HiscoreSkill> BOSSES = ImmutableList.of(
-            ABYSSAL_SIRE, ALCHEMICAL_HYDRA, BARROWS_CHESTS,
-            BRYOPHYTA, CALLISTO, CERBERUS,
-            CHAMBERS_OF_XERIC, CHAMBERS_OF_XERIC_CHALLENGE_MODE, CHAOS_ELEMENTAL,
-            CHAOS_FANATIC, COMMANDER_ZILYANA, CORPOREAL_BEAST,
-            DAGANNOTH_PRIME, DAGANNOTH_REX, DAGANNOTH_SUPREME,
-            CRAZY_ARCHAEOLOGIST, DERANGED_ARCHAEOLOGIST, GENERAL_GRAARDOR,
-            GIANT_MOLE, GROTESQUE_GUARDIANS, HESPORI,
-            KALPHITE_QUEEN, KING_BLACK_DRAGON, KRAKEN,
-            KREEARRA, KRIL_TSUTSAROTH, MIMIC,
-            NEX, NIGHTMARE, PHOSANIS_NIGHTMARE,
-            OBOR, SARACHNIS, SCORPIA,
-            SKOTIZO, TEMPOROSS, THE_GAUNTLET,
-            THE_CORRUPTED_GAUNTLET, THEATRE_OF_BLOOD, THEATRE_OF_BLOOD_HARD_MODE,
-            THERMONUCLEAR_SMOKE_DEVIL, TZKAL_ZUK, TZTOK_JAD,
-            VENENATIS, VETION, VORKATH,
-            WINTERTODT, ZALCANO, ZULRAH
-    );
 
     private final Client client;
     private final FriendTrackerPlugin plugin;
     private final FriendTrackerConfig config;
     private final HiscoreClient hiscoreClient;
 
+    // List of friend boxes
+    private final Map<String, FriendTrackerBox> friendBoxes = new HashMap<>();
+
     // Handle friend boxes
-    private final JPanel boxContainer = new JPanel();
+    private final JPanel friendBoxContainer = new JPanel();
 
     // Details and control
     private JPanel headerContainer = new JPanel();
@@ -125,65 +123,106 @@ public class FriendTrackerPanel extends PluginPanel
         headerContainer.add(refreshListBtn, BorderLayout.EAST);
 
         // Create Friend box wrapper
-        boxContainer.setLayout(new BoxLayout(boxContainer, BoxLayout.Y_AXIS));
+        friendBoxContainer.setLayout(new BoxLayout(friendBoxContainer, BoxLayout.Y_AXIS));
 
         layoutPanel.add(headerContainer);
-        layoutPanel.add(boxContainer);
+        layoutPanel.add(friendBoxContainer);
 
         // Add error pane
         errorPanel.setContent("Friend Tracker", "You have not checked your friends' xp yet.");
         add(errorPanel);
     }
 
-//    private void lookup()
-//    {
-//        final String lookup = sanitize(searchBar.getText());
+    /**
+     * Lookup the specified player on the normal hiscores
+     *
+     * @param playerName name of the player to lookup
+     */
+    public void lookup(String playerName)
+    {
+        final String sanitizedName = sanitize(playerName);
+
+        if (Strings.isNullOrEmpty(sanitizedName))
+        {
+            return;
+        }
+
+        hiscoreClient.lookupAsync(sanitizedName, HiscoreEndpoint.NORMAL).whenCompleteAsync((result, ex) ->
+                SwingUtilities.invokeLater(() ->
+                {
+                    if (result == null || ex != null)
+                    {
+                        if (ex != null)
+                        {
+                            log.warn("Error fetching Hiscore data " + ex.getMessage());
+                        }
+                        return;
+                    }
+
+                    //successful player search
+                    applyHiscoreResult(result);
+                }));
+    }
+
+    private void applyHiscoreResult(HiscoreResult result)
+    {
+        Friend friend = new Friend(result);
+
+        FriendTrackerBox friendBox = new FriendTrackerBox(plugin, this, friend);
+
+        friendBoxes.put(friend.getName(), friendBox);
+
+        SwingUtilities.invokeLater(() ->
+        {
+            friendBoxContainer.add(friendBox);
+            friendBoxContainer.revalidate();
+            friendBoxContainer.repaint();
+        });
+
+        remove(errorPanel);
+    }
+
+    public void reset() {
+        for(FriendTrackerBox box : friendBoxes.values())
+        {
+            SwingUtilities.invokeLater(() -> friendBoxContainer.remove(box));
+        }
+        friendBoxes.clear();
+    }
+
+    public void rebuild()
+    {
+//        List<FriendTrackerBox> sortedList = friendBoxes.entrySet().stream()
+//                .sorted(Comparator.comparingLong((Map.Entry<String,FriendTrackerBox> entry) -> entry.getValue().getFriend().getGainedSkillXP(OVERALL)))
+//                .map((Map.Entry<String,FriendTrackerBox> entry) -> entry.getValue())
+//                .collect(Collectors.toList());
 //
-//        if (Strings.isNullOrEmpty(lookup))
+//
+//        for (FriendTrackerBox friendBox : sortedList)
 //        {
-//            return;
-//        }
-//
-//        searchBar.setEditable(false);
-//        searchBar.setIcon(IconTextField.Icon.LOADING_DARKER);
-//        loading = true;
-//
-//        for (Map.Entry<HiscoreSkill, JLabel> entry : skillLabels.entrySet())
-//        {
-//            HiscoreSkill skill = entry.getKey();
-//            JLabel label = entry.getValue();
-//            HiscoreSkillType skillType = skill == null ? HiscoreSkillType.SKILL : skill.getType();
-//
-//            label.setText(pad("--", skillType));
-//            label.setToolTipText(skill == null ? "Combat" : skill.getName());
-//        }
-//
-//        // if for some reason no endpoint was selected, default to normal
-//        if (selectedEndPoint == null)
-//        {
-//            selectedEndPoint = HiscoreEndpoint.NORMAL;
-//        }
-//
-//        hiscoreClient.lookupAsync(lookup, selectedEndPoint).whenCompleteAsync((result, ex) ->
-//                SwingUtilities.invokeLater(() ->
-//                {
-//                    if (!sanitize(searchBar.getText()).equals(lookup))
+//            SwingUtilities.invokeLater(() ->
 //                    {
-//                        // search has changed in the meantime
-//                        return;
-//                    }
-//
-//                    if (result == null || ex != null)
-//                    {
-//                        if (ex != null)
-//                        {
-//                            log.warn("Error fetching Hiscore data " + ex.getMessage());
-//                        }
-//                        return;
-//                    }
-//
-//                    //successful player search
-//                    applyHiscoreResult(result);
-//                }));
-//    }
+//                        friendBoxContainer.add(friendBox);
+//                        friendBoxContainer.revalidate();
+//                        friendBoxContainer.repaint();
+//                    });
+//        }
+
+//        validate();
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * Replace no-break space characters with regular spaces in the given string
+     *
+     * @param lookup the string to sanitize
+     * @return a string with spaces in place of no-break spaces
+     */
+    private static String sanitize(String lookup)
+    {
+        return lookup.replace('\u00A0', ' ');
+    }
+
+
 }

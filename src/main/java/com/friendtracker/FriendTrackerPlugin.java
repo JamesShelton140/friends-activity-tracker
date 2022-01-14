@@ -4,6 +4,7 @@ import com.friendtracker.ui.FriendTrackerPanel;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
@@ -16,6 +17,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.SwingUtil;
 
 @Slf4j
 @PluginDescriptor(
@@ -61,7 +63,16 @@ public class FriendTrackerPlugin extends Plugin
 
 	public void refreshList()
 	{
-		System.out.println("Pressed the button!");
+		net.runelite.api.Friend[] friendList = this.client.getFriendContainer().getMembers();
+
+		panel.reset();
+
+		for(net.runelite.api.Friend friend:friendList)
+		{
+			panel.lookup(friend.getName());
+		}
+
+		panel.rebuild();
 	}
 
 	@Provides
