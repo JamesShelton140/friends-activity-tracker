@@ -1,2 +1,2 @@
-# Example
-An example greeter plugin
+# Friend Tracker
+Track the activity of players on your friends list to find inactive players to remove to make space.
