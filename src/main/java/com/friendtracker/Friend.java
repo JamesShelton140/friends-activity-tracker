@@ -92,4 +92,26 @@ public class Friend {
     {
         return gainedExperience.get(skill);
     }
+
+    /**
+     * Creates a formatted string snapshot containing the names and total experience for all skills for this Friend.
+     * This is intended for save/load purposes.
+     *
+     * @return a string
+     */
+    public String dataSnapshot()
+    {
+        String snapshot = "Friend{";
+
+        snapshot += "name:" + this.name + ",";
+        snapshot += "oldname:" + this.oldName + "";
+
+        snapshot += totalExperience.entrySet().stream()
+                                .map(entry -> entry.getKey() + ":" + entry.getValue())
+                                .reduce("", (a, b) -> a + "," + b);
+
+        snapshot += "}";
+
+        return snapshot;
+    }
 }
