@@ -30,18 +30,14 @@ package com.friendtracker.ui;
 import com.friendtracker.Friend;
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
+import com.friendtracker.io.SaveManager;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -54,8 +50,6 @@ import net.runelite.api.Client;
 import net.runelite.client.hiscore.HiscoreClient;
 import net.runelite.client.hiscore.HiscoreEndpoint;
 import net.runelite.client.hiscore.HiscoreResult;
-import net.runelite.client.hiscore.HiscoreSkill;
-import static net.runelite.client.hiscore.HiscoreSkill.*;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
@@ -70,6 +64,7 @@ public class FriendTrackerPanel extends PluginPanel
     private final FriendTrackerPlugin plugin;
     private final FriendTrackerConfig config;
     private final HiscoreClient hiscoreClient;
+    private final SaveManager saveManager;
 
     // List of friend boxes
     @Getter
@@ -86,13 +81,13 @@ public class FriendTrackerPanel extends PluginPanel
     // Display if not refreshed
     private final PluginErrorPanel errorPanel = new PluginErrorPanel();
 
-    @Inject
-    public FriendTrackerPanel(@Nullable Client client, FriendTrackerPlugin plugin, FriendTrackerConfig config, OkHttpClient okHttpClient)
+    public FriendTrackerPanel(@Nullable Client client, FriendTrackerPlugin plugin, FriendTrackerConfig config, SaveManager saveManager, OkHttpClient okHttpClient)
     {
         this.plugin = plugin;
         this.config = config;
         this.hiscoreClient = new HiscoreClient(okHttpClient);
         this.client = client;
+        this.saveManager = saveManager;
 
         setBorder(new EmptyBorder(6, 6, 6, 6));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -173,13 +168,13 @@ public class FriendTrackerPanel extends PluginPanel
         FriendTrackerBox friendBox = new FriendTrackerBox(plugin, this, friend);
 
         friendBoxes.put(friend.getName(), friendBox);
+        saveManager.addToSave(friend);
 
         SwingUtilities.invokeLater(() ->
         {
             friendBoxContainer.add(friendBox);
             friendBoxContainer.revalidate();
             friendBoxContainer.repaint();
-            plugin.buildSaveFile();
         });
 
         remove(errorPanel);

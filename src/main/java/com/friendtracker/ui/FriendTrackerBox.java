@@ -2,18 +2,15 @@ package com.friendtracker.ui;
 
 import com.friendtracker.Friend;
 import com.friendtracker.FriendTrackerPlugin;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.Box;
@@ -35,7 +32,6 @@ import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 import net.runelite.client.util.SwingUtil;
-import net.runelite.client.util.Text;
 
 public class FriendTrackerBox extends JPanel
 {
@@ -109,20 +105,12 @@ public class FriendTrackerBox extends JPanel
     {
         this.friend = friend;
 
-//        this.setLayout(new BorderLayout());
-//
-//        JLabel label = new JLabel(friend.getName());
-//        label.setForeground(Color.WHITE);
-//        this.add(label,BorderLayout.CENTER);
-//        this.setVisible(true);
-
         setLayout(new BorderLayout(0, 1));
         setBorder(new EmptyBorder(5, 0, 0, 0));
 
         logTitle.setLayout(new BoxLayout(logTitle, BoxLayout.X_AXIS));
         logTitle.setBorder(new EmptyBorder(7, 7, 7, 7));
         logTitle.setBackground(ColorScheme.DARKER_GRAY_COLOR.darker());
-//        logTitle.setBackground(eventIgnored ? ColorScheme.DARKER_GRAY_HOVER_COLOR : ColorScheme.DARKER_GRAY_COLOR.darker());
 
         SwingUtil.removeButtonDecorations(collapseBtn);
         collapseBtn.setIcon(COLLAPSE_ICON);
@@ -141,16 +129,7 @@ public class FriendTrackerBox extends JPanel
         titleLabel.setMinimumSize(new Dimension(1, titleLabel.getPreferredSize().height));
         logTitle.add(titleLabel);
 
-//        subTitleLabel.setFont(FontManager.getRunescapeSmallFont());
-//        subTitleLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-
-//        if (!Strings.isNullOrEmpty(subtitle))
-//        {
-//            subTitleLabel.setText(subtitle);
-//        }
-
         logTitle.add(Box.createRigidArea(new Dimension(TITLE_PADDING, 0)));
-//        logTitle.add(subTitleLabel);
         logTitle.add(Box.createHorizontalGlue());
         logTitle.add(Box.createRigidArea(new Dimension(TITLE_PADDING, 0)));
 
