@@ -1,7 +1,7 @@
 package com.friendtracker;
 
 import com.friendtracker.io.SaveManager;
-import com.friendtracker.ui.FriendTrackerPanel;
+import com.friendtracker.panel.FriendTrackerPanel;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import javax.inject.Inject;

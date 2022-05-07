@@ -1,6 +1,6 @@
-package com.friendtracker.ui;
+package com.friendtracker.panel;
 
-import com.friendtracker.Friend;
+import com.friendtracker.OldFriend;
 import com.friendtracker.FriendTrackerPlugin;
 import com.google.common.collect.ImmutableList;
 import java.awt.BorderLayout;
@@ -80,7 +80,7 @@ public class FriendTrackerBox extends JPanel
     private final Map<JPanel, Long> skillLabels = new HashMap<>();
 
     @Getter
-    private final Friend friend;
+    private final OldFriend oldFriend;
 
     // Box title components
     private final JPanel logTitle = new JPanel();
@@ -101,9 +101,9 @@ public class FriendTrackerBox extends JPanel
         EXPAND_ICON = new ImageIcon(expandedImg);
     }
 
-    public FriendTrackerBox(FriendTrackerPlugin plugin, FriendTrackerPanel panel, Friend friend)
+    public FriendTrackerBox(FriendTrackerPlugin plugin, FriendTrackerPanel panel, OldFriend oldFriend)
     {
-        this.friend = friend;
+        this.oldFriend = oldFriend;
 
         setLayout(new BorderLayout(0, 1));
         setBorder(new EmptyBorder(5, 0, 0, 0));
@@ -122,7 +122,7 @@ public class FriendTrackerBox extends JPanel
         logTitle.add(collapseBtn);
 
         JLabel titleLabel = new JLabel();
-        titleLabel.setText(friend.getName());
+        titleLabel.setText(oldFriend.getName());
         titleLabel.setFont(FontManager.getRunescapeSmallFont());
         titleLabel.setForeground(Color.WHITE);
         // Set a size to make BoxLayout truncate the name
@@ -149,8 +149,8 @@ public class FriendTrackerBox extends JPanel
     {
         buildSkills();
 
-        overallLabel.setText("+" + QuantityFormatter.quantityToStackSize(friend.getGainedSkillXP(HiscoreSkill.OVERALL)) + " xp");
-        overallLabel.setToolTipText("+" + QuantityFormatter.formatNumber(friend.getGainedSkillXP(HiscoreSkill.OVERALL)) + " xp");
+        overallLabel.setText("+" + QuantityFormatter.quantityToStackSize(oldFriend.getGainedSkillXP(HiscoreSkill.OVERALL)) + " xp");
+        overallLabel.setToolTipText("+" + QuantityFormatter.formatNumber(oldFriend.getGainedSkillXP(HiscoreSkill.OVERALL)) + " xp");
 
         validate();
         repaint();
@@ -255,17 +255,17 @@ public class FriendTrackerBox extends JPanel
             skillLabel.setHorizontalAlignment(SwingConstants.CENTER);
             skillLabel.setIcon(new ImageIcon(ImageUtil.loadImageResource(FriendTrackerPlugin.class, skillIcon)));
 
-            String labelText = "+ " + QuantityFormatter.quantityToStackSize(friend.getGainedSkillXP(skill));
+            String labelText = "+ " + QuantityFormatter.quantityToStackSize(oldFriend.getGainedSkillXP(skill));
             if(skill.getType() == HiscoreSkillType.SKILL)
             {
                 labelText += " xp";
             }
 
             skillLabel.setText(labelText);
-            skillLabel.setToolTipText(QuantityFormatter.formatNumber(friend.getGainedSkillXP(skill)));
+            skillLabel.setToolTipText(QuantityFormatter.formatNumber(oldFriend.getGainedSkillXP(skill)));
 
             slotContainer.add(skillLabel);
-            skillLabels.put(slotContainer, friend.getGainedSkillXP(skill));
+            skillLabels.put(slotContainer, oldFriend.getGainedSkillXP(skill));
         }
 
         List<JPanel> sortedList = skillLabels.entrySet().stream()

@@ -5,12 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
+import lombok.Setter;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
 import static net.runelite.client.hiscore.HiscoreSkill.*;
 import net.runelite.client.hiscore.Skill;
 
-public class Friend {
+public class OldFriend {
 
     /**
      * Real skills, ordered in the way they should be displayed in the panel.
@@ -50,17 +51,17 @@ public class Friend {
 
     @Getter
     private String name;
-    @Getter
+    @Getter@Setter
     private String oldName;
     private final Map<HiscoreSkill, Long> totalExperience = new HashMap<>();
     private final Map<HiscoreSkill, Long> gainedExperience = new HashMap<>();
 
-    public Friend(String name)
+    public OldFriend(String name)
     {
         this.name = name;
     }
 
-    public Friend(HiscoreResult result)
+    public OldFriend(HiscoreResult result)
     {
         this.name = result.getPlayer();
 

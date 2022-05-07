@@ -25,11 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.friendtracker.ui;
+package com.friendtracker.panel;
 
-import com.friendtracker.Friend;
+import com.friendtracker.OldFriend;
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
+import com.friendtracker.data.FriendDataClient;
 import com.friendtracker.io.SaveManager;
 import com.google.common.base.Strings;
 import java.awt.BorderLayout;
@@ -74,9 +75,8 @@ public class FriendTrackerPanel extends PluginPanel
     private final JPanel friendBoxContainer = new JPanel();
 
     // Details and control
-    private JPanel headerContainer = new JPanel();
-    private JLabel titleLabel = new JLabel();
-    private JButton refreshListBtn = new JButton();
+    private final JLabel titleLabel = new JLabel();
+    private final JButton refreshListBtn = new JButton();
 
     // Display if not refreshed
     private final PluginErrorPanel errorPanel = new PluginErrorPanel();
@@ -99,6 +99,7 @@ public class FriendTrackerPanel extends PluginPanel
         add(layoutPanel, BorderLayout.NORTH);
 
         // Create header container
+        JPanel headerContainer = new JPanel();
         headerContainer.setLayout(new BorderLayout());
         headerContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         headerContainer.setPreferredSize(new Dimension(0, 30));
@@ -119,15 +120,18 @@ public class FriendTrackerPanel extends PluginPanel
         headerContainer.add(titleLabel, BorderLayout.WEST);
         headerContainer.add(refreshListBtn, BorderLayout.EAST);
 
-        // Create Friend box wrapper
-        friendBoxContainer.setLayout(new BoxLayout(friendBoxContainer, BoxLayout.Y_AXIS));
-
+//        // Create Friend box wrapper
+//        friendBoxContainer.setLayout(new BoxLayout(friendBoxContainer, BoxLayout.Y_AXIS));
+//
+//        layoutPanel.add(headerContainer);
+//        layoutPanel.add(friendBoxContainer);
+//
+//        // Add error pane
+//        errorPanel.setContent("Friend Tracker", "You have not checked your friends' xp yet.");
+//        add(errorPanel);
         layoutPanel.add(headerContainer);
-        layoutPanel.add(friendBoxContainer);
-
-        // Add error pane
-        errorPanel.setContent("Friend Tracker", "You have not checked your friends' xp yet.");
-        add(errorPanel);
+        FriendListPanel friendListPanel = new FriendListPanel(plugin, config, new FriendDataClient());
+        layoutPanel.add(friendListPanel);
     }
 
     /**
@@ -163,12 +167,12 @@ public class FriendTrackerPanel extends PluginPanel
 
     private void applyHiscoreResult(HiscoreResult result)
     {
-        Friend friend = new Friend(result);
+        OldFriend oldFriend = new OldFriend(result);
 
-        FriendTrackerBox friendBox = new FriendTrackerBox(plugin, this, friend);
+        FriendTrackerBox friendBox = new FriendTrackerBox(plugin, this, oldFriend);
 
-        friendBoxes.put(friend.getName(), friendBox);
-        saveManager.addToSave(friend);
+        friendBoxes.put(oldFriend.getName(), friendBox);
+        saveManager.addToSave(oldFriend);
 
         SwingUtilities.invokeLater(() ->
         {

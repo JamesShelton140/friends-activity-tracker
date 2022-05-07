@@ -1,11 +1,13 @@
 package com.friendtracker.io;
 
-import com.friendtracker.Friend;
+import com.friendtracker.OldFriend;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import net.runelite.api.Client;
@@ -17,7 +19,7 @@ public class SaveManager {
 
     private final Client client;
 
-    private final Map<String, Friend> friends = new HashMap<>();
+    private final Map<String, OldFriend> friends = new HashMap<>();
 
     public SaveManager(Client client)
     {
@@ -29,9 +31,9 @@ public class SaveManager {
         }
     }
 
-    public void addToSave(Friend friend)
+    public void addToSave(OldFriend oldFriend)
     {
-        friends.put(friend.getName(), friend);
+        friends.put(oldFriend.getName(), oldFriend);
 
         buildSaveFile();
     }
@@ -39,9 +41,9 @@ public class SaveManager {
     public void buildSaveFile()
     {
         try {
-            String dateAndTime = java.time.LocalDate.now().toString();
+            long timeStamp = Instant.now().truncatedTo(ChronoUnit.MINUTES).toEpochMilli();
 
-            File saveFile = new File(RUNELITE_DIR + "/friend-tracker/" + client.getUsername() + dateAndTime + ".txt");
+            File saveFile = new File(RUNELITE_DIR + "/friend-tracker/" + client.getAccountHash() + "/" + timeStamp + ".txt");
 
             if (!saveFile.createNewFile()) {
 
@@ -51,9 +53,9 @@ public class SaveManager {
 
             try (FileWriter f = new FileWriter(saveFile, true); BufferedWriter b = new BufferedWriter(f); PrintWriter p = new PrintWriter(b);)
             {
-                for (Friend friend : friends.values())
+                for (OldFriend oldFriend : friends.values())
                 {
-                    p.println(friend.dataSnapshot());
+                    p.println(oldFriend.dataSnapshot());
                 }
             }
             catch (IOException i)
