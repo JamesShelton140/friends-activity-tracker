@@ -27,35 +27,26 @@
  */
 package com.friendtracker.panel;
 
-import com.friendtracker.OldFriend;
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
-import com.friendtracker.data.FriendDataClient;
-import com.friendtracker.io.SaveManager;
-import com.google.common.base.Strings;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.client.hiscore.HiscoreClient;
-import net.runelite.client.hiscore.HiscoreEndpoint;
-import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
-import okhttp3.OkHttpClient;
 
 @Slf4j
 public class FriendTrackerPanel extends PluginPanel
@@ -64,44 +55,44 @@ public class FriendTrackerPanel extends PluginPanel
     private final Client client;
     private final FriendTrackerPlugin plugin;
     private final FriendTrackerConfig config;
-    private final HiscoreClient hiscoreClient;
-    private final SaveManager saveManager;
-
-    // List of friend boxes
-    @Getter
-    private final Map<String, FriendTrackerBox> friendBoxes = new HashMap<>();
-
-    // Handle friend boxes
-    private final JPanel friendBoxContainer = new JPanel();
 
     // Details and control
     private final JLabel titleLabel = new JLabel();
-    private final JButton refreshListBtn = new JButton();
 
     // Display if not refreshed
     private final PluginErrorPanel errorPanel = new PluginErrorPanel();
 
-    public FriendTrackerPanel(@Nullable Client client, FriendTrackerPlugin plugin, FriendTrackerConfig config, SaveManager saveManager, OkHttpClient okHttpClient)
+    // Container for all panels to be displayed while the player is logged in
+    private final JPanel loggedInPanel = new JPanel();
+
+    // Panel that contains all FriendPanels to be displayed, and sort/filter controls
+    private final FriendListPanel friendListPanel;
+
+    // Container for mergePanels
+    private final JPanel mergePanelContainer = new JPanel();
+    // Collection of all active merge panels
+    private final List<MergePanel> mergePanels = new ArrayList<>();
+
+    private boolean loggedIn = false;
+
+    private boolean mergeInProgress = false;
+
+    public FriendTrackerPanel(@Nullable Client client, FriendTrackerPlugin plugin, FriendTrackerConfig config)
     {
         this.plugin = plugin;
         this.config = config;
-        this.hiscoreClient = new HiscoreClient(okHttpClient);
+//        this.hiscoreClient = new HiscoreClient(okHttpClient);
         this.client = client;
-        this.saveManager = saveManager;
+        this.friendListPanel = new FriendListPanel(plugin, config);
 
         setBorder(new EmptyBorder(6, 6, 6, 6));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
         setLayout(new BorderLayout());
 
-        // Create layout panel for wrapping
-        final JPanel layoutPanel = new JPanel();
-        layoutPanel.setLayout(new BoxLayout(layoutPanel, BoxLayout.Y_AXIS));
-        add(layoutPanel, BorderLayout.NORTH);
-
         // Create header container
         JPanel headerContainer = new JPanel();
         headerContainer.setLayout(new BorderLayout());
-        headerContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        headerContainer.setBackground(ColorScheme.DARK_GRAY_COLOR);
         headerContainer.setPreferredSize(new Dimension(0, 30));
         headerContainer.setBorder(new EmptyBorder(5, 5, 5, 10));
 
@@ -110,121 +101,122 @@ public class FriendTrackerPanel extends PluginPanel
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(FontManager.getRunescapeSmallFont());
 
-        // Create refresh list button
-        refreshListBtn.setText("Refresh List");
-        refreshListBtn.addActionListener(e ->
-        {
-            plugin.refreshList();
-        });
-
         headerContainer.add(titleLabel, BorderLayout.WEST);
-        headerContainer.add(refreshListBtn, BorderLayout.EAST);
+        add(headerContainer, BorderLayout.NORTH);
 
-//        // Create Friend box wrapper
-//        friendBoxContainer.setLayout(new BoxLayout(friendBoxContainer, BoxLayout.Y_AXIS));
-//
-//        layoutPanel.add(headerContainer);
-//        layoutPanel.add(friendBoxContainer);
-//
-//        // Add error pane
-//        errorPanel.setContent("Friend Tracker", "You have not checked your friends' xp yet.");
-//        add(errorPanel);
-        layoutPanel.add(headerContainer);
-        FriendListPanel friendListPanel = new FriendListPanel(plugin, config, new FriendDataClient());
-        layoutPanel.add(friendListPanel);
+        loggedInPanel.setLayout(new BoxLayout(loggedInPanel, BoxLayout.Y_AXIS));
+        loggedInPanel.add(friendListPanel);
+        loggedInPanel.setVisible(false);
+
+        mergePanelContainer.setLayout(new BorderLayout());
+        loggedInPanel.add(mergePanelContainer);
+
+        add(loggedInPanel, BorderLayout.CENTER);
+
+        // Add error pane
+        errorPanel.setContent("No friends found", "Log in to track friends' xp.");
+        add(errorPanel, BorderLayout.SOUTH);
     }
 
     /**
-     * Lookup the specified player on the normal hiscores
      *
-     * @param playerName name of the player to lookup
+     * @param mergePanel
+     * @return the ID of the Friend to merge into or an empty string to indicate a new Friend should be created instead
      */
-    public void lookup(String playerName)
+    public void addMergePanel(MergePanel mergePanel)
     {
-        final String sanitizedName = sanitize(playerName);
+        mergePanels.add(mergePanel);
 
-        if (Strings.isNullOrEmpty(sanitizedName))
+        if(!mergeInProgress)
         {
-            return;
+            mergeInProgress = true;
+            drawNextMergePanel();
+        }
+    }
+
+    public void removeMergePanel(MergePanel mergePanel)
+    {
+        mergePanels.remove(mergePanel);
+
+    }
+
+    public void drawNextMergePanel()
+    {
+        assert SwingUtilities.isEventDispatchThread();
+
+        mergePanelContainer.removeAll();
+
+        if(hasMergeToResolve())
+        {
+            mergePanelContainer.add(mergePanels.remove(0));
+        }
+        else
+        {
+            mergeInProgress = false;
         }
 
-        hiscoreClient.lookupAsync(sanitizedName, HiscoreEndpoint.NORMAL).whenCompleteAsync((result, ex) ->
-                SwingUtilities.invokeLater(() ->
-                {
-                    if (result == null || ex != null)
-                    {
-                        if (ex != null)
-                        {
-                            log.warn("Error fetching Hiscore data " + ex.getMessage());
-                        }
-                        return;
-                    }
-
-                    //successful player search
-                    applyHiscoreResult(result);
-                }));
+        redraw();
     }
 
-    private void applyHiscoreResult(HiscoreResult result)
+    private boolean hasMergeToResolve()
     {
-        OldFriend oldFriend = new OldFriend(result);
-
-        FriendTrackerBox friendBox = new FriendTrackerBox(plugin, this, oldFriend);
-
-        friendBoxes.put(oldFriend.getName(), friendBox);
-        saveManager.addToSave(oldFriend);
-
-        SwingUtilities.invokeLater(() ->
-        {
-            friendBoxContainer.add(friendBox);
-            friendBoxContainer.revalidate();
-            friendBoxContainer.repaint();
-        });
-
-        remove(errorPanel);
+        return !mergePanels.isEmpty();
     }
 
-    public void reset() {
-        for(FriendTrackerBox box : friendBoxes.values())
+    public void refresh()
+    {
+        assert SwingUtilities.isEventDispatchThread();
+
+        Arrays.stream(loggedInPanel.getComponents()).forEach(component -> component.setVisible(false));
+
+        if(mergeInProgress)
         {
-            SwingUtilities.invokeLater(() -> friendBoxContainer.remove(box));
+            // Hide all panels other than mergePanelContainer
+
+            // Show the mergePanelContainer
+            mergePanelContainer.setVisible(true);
         }
-        friendBoxes.clear();
+        else
+        {
+            // Hide all panels other than friendListPanel
+//            Arrays.stream(loggedInPanel.getComponents()).filter(component -> !component.equals(friendListPanel)).forEach(component -> component.setVisible(false));
+            // return to default view
+            friendListPanel.setVisible(true);
+            friendListPanel.refresh();
+        }
+
     }
 
-    public void rebuild()
+    public void redraw()
     {
-//        List<FriendTrackerBox> sortedList = friendBoxes.entrySet().stream()
-//                .sorted(Comparator.comparingLong((Map.Entry<String,FriendTrackerBox> entry) -> entry.getValue().getFriend().getGainedSkillXP(OVERALL)))
-//                .map((Map.Entry<String,FriendTrackerBox> entry) -> entry.getValue())
-//                .collect(Collectors.toList());
-//
-//
-//        for (FriendTrackerBox friendBox : sortedList)
-//        {
-//            SwingUtilities.invokeLater(() ->
-//                    {
-//                        friendBoxContainer.add(friendBox);
-//                        friendBoxContainer.revalidate();
-//                        friendBoxContainer.repaint();
-//                    });
-//        }
+        assert SwingUtilities.isEventDispatchThread();
+        log.info("mergeInProgress: {}", mergeInProgress);
+//        invalidate();
 
-//        validate();
+        if(!mergeInProgress)
+        {
+            friendListPanel.redraw();
+        }
+
+        refresh();
+
         revalidate();
         repaint();
     }
 
-    /**
-     * Replace no-break space characters with regular spaces in the given string
-     *
-     * @param lookup the string to sanitize
-     * @return a string with spaces in place of no-break spaces
-     */
-    private static String sanitize(String lookup)
+    public void setLoggedIn(boolean loggedIn)
     {
-        return lookup.replace('\u00A0', ' ');
-    }
+        assert SwingUtilities.isEventDispatchThread();
 
+        if(loggedIn != this.loggedIn)
+        {
+            errorPanel.setVisible(!loggedIn);
+            loggedInPanel.setVisible(loggedIn);
+
+            this.loggedIn = loggedIn;
+        }
+
+        redraw();
+    }
 
 }
