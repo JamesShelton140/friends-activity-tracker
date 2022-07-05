@@ -1,11 +1,33 @@
+/*
+ * Copyright (c) 2022, James Shelton <https://github.com/JamesShelton140>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.friendtracker.panel.components;
 
 import com.friendtracker.FriendTrackerPlugin;
 import com.friendtracker.data.HiscoreKeys;
-import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -17,7 +39,6 @@ import javax.swing.border.EmptyBorder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Experience;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
 import static net.runelite.client.hiscore.HiscoreSkill.*;
@@ -82,7 +103,6 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
 
         JLabel highLabel = getSkillLabel(skill);
         highLabel.setAlignmentX(RIGHT_ALIGNMENT);
-//        highLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
         highLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
         JLabel diffLabel = getSkillLabelWithIcon(skill);
@@ -112,7 +132,6 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
         JLabel label = new JLabel();
         label.setToolTipText(skill == null ? "Combat" : skill.getName()); // Do not need to consider "Combat" for comparison panel
         label.setFont(FontManager.getRunescapeSmallFont());
-//        label.setText(HiscoreUtil.pad("--", skillType));
         label.setText(StringUtils.leftPad("--", 2));
 
         return label;

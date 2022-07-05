@@ -61,22 +61,8 @@ public class FriendDataClient {
         HiscoreEndpoint selectedEndPoint = HiscoreEndpoint.NORMAL;
 
         return hiscoreClient.lookupAsync(lookup, selectedEndPoint);
-
-        // Hiscore plugin reset hiscore panel text to default
-        //        for (Map.Entry<HiscoreSkill, JLabel> entry : skillLabels.entrySet())
-//        {
-//            HiscoreSkill skill = entry.getKey();
-//            JLabel label = entry.getValue();
-//            HiscoreSkillType skillType = skill == null ? HiscoreSkillType.SKILL : skill.getType();
-//
-//            label.setText(pad("--", skillType));
-//            label.setToolTipText(skill == null ? "Combat" : skill.getName());
-//        }
     }
 
-    /**
-     *
-     */
     public Optional<HiscoreResult> lookup(String name)
     {
         try

@@ -1,7 +1,4 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
- * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
- * Copyright (c) 2019, Bram91 <https://github.com/bram91>
  * Copyright (c) 2022, James Shelton <https://github.com/JamesShelton140>
  * All rights reserved.
  *
@@ -29,7 +26,6 @@ package com.friendtracker.panel;
 
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
-import com.friendtracker.data.FriendDataClient;
 import com.friendtracker.friends.Friend;
 import com.friendtracker.panel.components.FixedWidthPanel;
 import com.friendtracker.panel.components.HiscorePanel;
@@ -46,7 +42,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -54,7 +49,6 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 import net.runelite.client.util.SwingUtil;
 
-@Slf4j
 public class FriendPanel extends FixedWidthPanel {
 
     private final FriendTrackerPlugin plugin;

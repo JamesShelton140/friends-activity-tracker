@@ -1,7 +1,4 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
- * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
- * Copyright (c) 2019, Bram91 <https://github.com/bram91>
  * Copyright (c) 2022, James Shelton <https://github.com/JamesShelton140>
  * All rights reserved.
  *
@@ -82,7 +79,6 @@ public class FriendTrackerPanel extends PluginPanel
     {
         this.plugin = plugin;
         this.config = config;
-//        this.hiscoreClient = new HiscoreClient(okHttpClient);
         this.client = client;
         this.friendListPanel = new FriendListPanel(plugin, config);
 
@@ -169,20 +165,17 @@ public class FriendTrackerPanel extends PluginPanel
     {
         assert SwingUtilities.isEventDispatchThread();
 
+        // Hide all panels
         Arrays.stream(loggedInPanel.getComponents()).forEach(component -> component.setVisible(false));
 
         if(mergeInProgress)
         {
-            // Hide all panels other than mergePanelContainer
-
             // Show the mergePanelContainer
             mergePanelContainer.setVisible(true);
             currentMergePanel.refresh();
         }
         else
         {
-            // Hide all panels other than friendListPanel
-//            Arrays.stream(loggedInPanel.getComponents()).filter(component -> !component.equals(friendListPanel)).forEach(component -> component.setVisible(false));
             // return to default view
             friendListPanel.setVisible(true);
             friendListPanel.refresh();
@@ -193,8 +186,6 @@ public class FriendTrackerPanel extends PluginPanel
     public void redraw()
     {
         assert SwingUtilities.isEventDispatchThread();
-        log.info("mergeInProgress: {}", mergeInProgress);
-//        invalidate();
 
         if(!mergeInProgress)
         {
