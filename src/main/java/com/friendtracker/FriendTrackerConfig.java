@@ -4,16 +4,17 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("example")
+@ConfigGroup(FriendTrackerPlugin.CONFIG_GROUP_NAME)
 public interface FriendTrackerConfig extends Config
 {
 	@ConfigItem(
-		keyName = "greeting",
-		name = "Welcome Greeting",
-		description = "The message to show to the user when they login"
+		position = 1,
+		keyName = "wrapMergeCandidates",
+		name = "Wrap merge panel candidates",
+		description = "When enabled allows the user to increment the selected merge candidate infinitely in either direction."
 	)
-	default String greeting()
+	default boolean wrapMergeCandidates()
 	{
-		return "Hello";
+		return true;
 	}
 }

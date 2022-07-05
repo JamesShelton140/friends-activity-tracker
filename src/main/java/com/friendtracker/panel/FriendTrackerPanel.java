@@ -70,6 +70,7 @@ public class FriendTrackerPanel extends PluginPanel
 
     // Container for mergePanels
     private final JPanel mergePanelContainer = new JPanel();
+    private MergePanel currentMergePanel;
     // Collection of all active merge panels
     private final List<MergePanel> mergePanels = new ArrayList<>();
 
@@ -137,7 +138,6 @@ public class FriendTrackerPanel extends PluginPanel
     public void removeMergePanel(MergePanel mergePanel)
     {
         mergePanels.remove(mergePanel);
-
     }
 
     public void drawNextMergePanel()
@@ -145,10 +145,12 @@ public class FriendTrackerPanel extends PluginPanel
         assert SwingUtilities.isEventDispatchThread();
 
         mergePanelContainer.removeAll();
+        currentMergePanel = null;
 
         if(hasMergeToResolve())
         {
-            mergePanelContainer.add(mergePanels.remove(0));
+            currentMergePanel = mergePanels.remove(0);
+            mergePanelContainer.add(currentMergePanel);
         }
         else
         {
@@ -175,6 +177,7 @@ public class FriendTrackerPanel extends PluginPanel
 
             // Show the mergePanelContainer
             mergePanelContainer.setVisible(true);
+            currentMergePanel.refresh();
         }
         else
         {

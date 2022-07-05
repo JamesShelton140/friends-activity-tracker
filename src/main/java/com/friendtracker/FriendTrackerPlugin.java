@@ -10,12 +10,9 @@ import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
-import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -23,7 +20,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.hiscore.HiscoreResult;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -76,7 +73,8 @@ public class FriendTrackerPlugin extends Plugin
 	private long lastAccount;
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged event) {
+	public void onGameStateChanged(GameStateChanged event)
+	{
 		GameState state = event.getGameState();
 
 		if (state == GameState.LOGGED_IN) {
@@ -97,6 +95,15 @@ public class FriendTrackerPlugin extends Plugin
 		}
 
 		SwingUtilities.invokeLater(() -> panel.setLoggedIn(isLoggedInState(state)));
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (event.getKey().equals("wrapMergeCandidates"))
+		{
+			panel.refresh();
+		}
 	}
 
 	private boolean isLoggedInState(GameState gameState)
@@ -208,30 +215,5 @@ public class FriendTrackerPlugin extends Plugin
 	FriendTrackerConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(FriendTrackerConfig.class);
-	}
-
-	//@todo debug method to be removed
-	private void readConfig()
-	{
-		Optional<Map<String, Friend>> friendDataOptional = trackerDataStore.getFriendDataFromConfig(client.getAccountHash());
-
-		if(friendDataOptional.isPresent())
-		{
-			Friend elixir = friendDataOptional.get().values().stream()
-					.filter(friend -> friend.getName().equalsIgnoreCase("Elixir140"))
-					.findAny()
-					.orElse(null);
-
-			if(elixir == null) throw new NullPointerException("Friend Elixir not found.");
-
-			HiscoreResult result = elixir.getHiscoreSnapshots().lastEntry().getValue();
-
-			if(result.getOverall().getLevel() != 2123) throw new ValueException("Overall level incorrect."); else log.info("Overall level deserialized correctly.");
-			if(result.getVorkath().getLevel() != 2277) throw new ValueException("Vorkath kc incorrect."); else log.info("Vorkath kc deserialized correctly.");
-		}
-		else
-		{
-			log.warn("Optional returned empty.");
-		}
 	}
 }

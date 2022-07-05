@@ -36,6 +36,8 @@ public class MergePanel extends FixedWidthPanel
     HiscoreComparisonPanel comparisonPanel;
     JLabel baseFriendNameLabel;
     JLabel mergeTargetNameLabel;
+    JButton prevBtn;
+    JButton nextBtn;
 
     public MergePanel(FriendTrackerPlugin plugin, FriendTrackerConfig config, Friend baseFriend, List<Friend> mergeCandidates)
     {
@@ -52,7 +54,7 @@ public class MergePanel extends FixedWidthPanel
         mergeButtonPanel.setLayout(new GridLayout(1,3));
 
         // Create previous button
-        JButton prevBtn = new JButton();
+        prevBtn = new JButton();
         prevBtn.setText("<");
         prevBtn.setFocusPainted(false);
         prevBtn.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -62,7 +64,7 @@ public class MergePanel extends FixedWidthPanel
         });
 
         // Create next button
-        JButton nextBtn = new JButton();
+        nextBtn = new JButton();
         nextBtn.setText(">");
         nextBtn.setFocusPainted(false);
         nextBtn.addActionListener(e ->
@@ -188,6 +190,8 @@ public class MergePanel extends FixedWidthPanel
         mergeTargetID = mergeCandidates.get(index).getID();
         setMergeTargetNameLabelText(mergeCandidates.get(index));
         comparisonPanel.applyHiscoreResult(mergeCandidates.get(index).getMostRecentResult(), baseFriend.getMostRecentResult());
+
+        refresh();
     }
 
     private void setMergeTargetNameLabelText(Friend target)
@@ -196,4 +200,22 @@ public class MergePanel extends FixedWidthPanel
         mergeTargetNameLabel.setToolTipText("Previous names:\n" + target.previousNamesVertical());
     }
 
+    public void refresh()
+    {
+        if (config.wrapMergeCandidates())
+        {
+            if(!prevBtn.isEnabled()) prevBtn.setEnabled(true);
+            if(!nextBtn.isEnabled()) nextBtn.setEnabled(true);
+        }
+
+        if (!config.wrapMergeCandidates())
+        {
+            if (((listIndex == 0) == prevBtn.isEnabled()) ||
+                    ((listIndex == mergeCandidates.size() - 1) == nextBtn.isEnabled()))
+            {
+                prevBtn.setEnabled(listIndex != 0);
+                nextBtn.setEnabled(listIndex != mergeCandidates.size() - 1);
+            }
+        }
+    }
 }
