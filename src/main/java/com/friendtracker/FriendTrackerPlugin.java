@@ -50,7 +50,7 @@ public class FriendTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		panel = new FriendTrackerPanel(client, this, config);
+		panel = new FriendTrackerPanel(client, this, config, configManager);
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "panel_icon.png");
 
@@ -209,6 +209,11 @@ public class FriendTrackerPlugin extends Plugin
 	public void saveCurrentFriendData()
 	{
 		trackerDataStore.saveFriendDataToConfig(friendManager.getAccountHash(), friendManager.getFriends());
+	}
+
+	public void refresh()
+	{
+		panel.refresh();
 	}
 
 	@Provides

@@ -45,6 +45,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
@@ -63,6 +64,7 @@ public class FriendTrackerPanel extends PluginPanel
     private final Icon GITHUB_ROLLOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(githubImage, -180));
 
     private final Client client;
+    private final ConfigManager configManager;
     private final FriendTrackerPlugin plugin;
     private final FriendTrackerConfig config;
 
@@ -85,12 +87,13 @@ public class FriendTrackerPanel extends PluginPanel
 
     private boolean mergeInProgress = false;
 
-    public FriendTrackerPanel(@Nullable Client client, FriendTrackerPlugin plugin, FriendTrackerConfig config)
+    public FriendTrackerPanel(@Nullable Client client, FriendTrackerPlugin plugin, FriendTrackerConfig config, ConfigManager configManager)
     {
         this.plugin = plugin;
         this.config = config;
         this.client = client;
-        this.friendListPanel = new FriendListPanel(plugin, config);
+        this.configManager = configManager;
+        this.friendListPanel = new FriendListPanel(plugin, config, configManager);
 
         setBorder(new EmptyBorder(6, 6, 6, 6));
         setBackground(ColorScheme.DARK_GRAY_COLOR);

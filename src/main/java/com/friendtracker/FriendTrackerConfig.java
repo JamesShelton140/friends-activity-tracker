@@ -1,5 +1,6 @@
 package com.friendtracker;
 
+import com.friendtracker.config.ConfigValues;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -7,7 +8,8 @@ import net.runelite.client.config.ConfigItem;
 @ConfigGroup(FriendTrackerPlugin.CONFIG_GROUP_NAME)
 public interface FriendTrackerConfig extends Config
 {
-	@ConfigItem(
+	@ConfigItem
+	(
 		position = 1,
 		keyName = "wrapMergeCandidates",
 		name = "Wrap merge panel candidates",
@@ -16,5 +18,31 @@ public interface FriendTrackerConfig extends Config
 	default boolean wrapMergeCandidates()
 	{
 		return true;
+	}
+
+	@ConfigItem
+	(
+		position = 101,
+		keyName = "selectedRange",
+		name = "Range to display",
+		description = "",
+		hidden = true
+	)
+	default ConfigValues.RangeOptions selectedRange()
+	{
+		return ConfigValues.RangeOptions.ALL;
+	}
+
+	@ConfigItem
+	(
+		position = 102,
+		keyName = "sortCriteria",
+		name = "Sorting criteria",
+		description = "",
+		hidden = true
+	)
+	default ConfigValues.SortOptions sortCriteria()
+	{
+		return ConfigValues.SortOptions.ALPHA_ASCENDING;
 	}
 }

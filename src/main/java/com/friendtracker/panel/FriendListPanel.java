@@ -26,51 +26,143 @@ package com.friendtracker.panel;
 
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
+import com.friendtracker.config.ConfigValues;
 import com.friendtracker.friends.Friend;
 import com.friendtracker.friends.FriendManager;
 import com.friendtracker.panel.components.FixedWidthPanel;
+import com.friendtracker.panel.components.SearchBox;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.PluginPanel;
 
 @Slf4j
 public class FriendListPanel extends FixedWidthPanel
 {
     private final FriendTrackerPlugin plugin;
     private final FriendTrackerConfig config;
-    private final JButton refreshListBtn = new JButton();
+    private final ConfigManager configManager;
+    //    private final JButton refreshListBtn = new JButton();
     JPanel listWrapper = new JPanel();
 
 
-    public FriendListPanel(FriendTrackerPlugin plugin, FriendTrackerConfig config)
+    public FriendListPanel(FriendTrackerPlugin plugin, FriendTrackerConfig config, ConfigManager configManager)
     {
         this.plugin = plugin;
         this.config = config;
+        this.configManager = configManager;
         setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
         setLayout(new BorderLayout());
 
-        // Create refresh list button
-        refreshListBtn.setText("Refresh List");
-        refreshListBtn.addActionListener(e ->
-        {
-            plugin.refreshList();
-        });
-
-        this.add(refreshListBtn, BorderLayout.NORTH);
+        this.add(createNorthPanel(), BorderLayout.NORTH);
 
         listWrapper.setLayout(new BoxLayout(listWrapper, BoxLayout.Y_AXIS));
 
         this.add(listWrapper, BorderLayout.CENTER);
+    }
+
+    private JPanel createNorthPanel()
+    {
+        JPanel northPanel = new FixedWidthPanel();
+        northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
+
+        // Create refresh list button
+        JButton refreshListBtn =  new JButton("Refresh List");
+        refreshListBtn.setFocusable(false);
+        refreshListBtn.setAlignmentX(CENTER_ALIGNMENT);
+        refreshListBtn.addActionListener(e -> plugin.refreshList());
+
+        JComboBox<Enum> rangeDropdown = makeNewDropdown(ConfigValues.RangeOptions.values(), "selectedRange");
+        rangeDropdown.setSelectedItem(config.selectedRange());
+        JPanel rangePanel = makeDropdownPanel(rangeDropdown, "Range");
+
+        JComboBox<Enum> sortDropdown = makeNewDropdown(ConfigValues.SortOptions.values(), "sortCriteria");
+        sortDropdown.setSelectedItem(config.selectedRange());
+        JPanel sortPanel = makeDropdownPanel(sortDropdown, "Sort");
+
+        northPanel.add(refreshListBtn);
+        northPanel.add(Box.createVerticalStrut(5));
+        northPanel.add(rangePanel);
+        northPanel.add(Box.createVerticalStrut(2));
+        northPanel.add(sortPanel);
+        northPanel.add(Box.createVerticalStrut(5));
+        northPanel.add(getSearchPanel());
+
+        return northPanel;
+    }
+
+    private JComboBox<Enum> makeNewDropdown(Enum[] values, String key)
+    {
+        JComboBox<Enum> dropdown = new JComboBox<>(values);
+        dropdown.setFocusable(false);
+        dropdown.setForeground(Color.WHITE);
+        dropdown.setPreferredSize(new Dimension(175, 24));
+        dropdown.addActionListener(e -> {
+            Enum selectedItem = dropdown.getItemAt(dropdown.getSelectedIndex());
+            configManager.setConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME, key, selectedItem);
+            plugin.refresh();
+        });
+//        dropdown.addItemListener(e ->
+//        {
+//            if (e.getStateChange() == ItemEvent.SELECTED)
+//            {
+//                Enum source = (Enum) e.getItem();
+//                questHelperPlugin.getConfigManager().setConfiguration("questhelper", key,
+//                        source);
+//            }
+//        });
+
+        return dropdown;
+    }
+
+    private JPanel makeDropdownPanel(JComboBox dropdown, String name)
+    {
+        // Filters
+        JLabel filterName = new JLabel(name);
+        filterName.setForeground(Color.WHITE);
+
+        JPanel filtersPanel = new JPanel();
+        filtersPanel.setLayout(new BorderLayout());
+        filtersPanel.setMinimumSize(new Dimension(PluginPanel.PANEL_WIDTH, 0));
+        filtersPanel.add(filterName, BorderLayout.CENTER);
+        filtersPanel.add(dropdown, BorderLayout.EAST);
+
+        return filtersPanel;
+    }
+
+    private JPanel getSearchPanel()
+    {
+        JPanel filtersPanel = new JPanel();
+        filtersPanel.setMinimumSize(new Dimension(PluginPanel.PANEL_WIDTH, 0));
+//        filtersPanel.setAlignmentX(LEFT_ALIGNMENT);
+        filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
+
+        SearchBox textSearch = new SearchBox();
+        textSearch.addTextChangedListener(() -> {
+//            plugin.taskTextFilter = textSearch.getText().toLowerCase();
+            refresh();
+        });
+
+        filtersPanel.add(textSearch);
+
+        return filtersPanel;
     }
 
     /**
@@ -102,6 +194,8 @@ public class FriendListPanel extends FixedWidthPanel
         listWrapper.removeAll();
 
         getFriends().forEach(friend -> listWrapper.add(friend.generatePanel(plugin, config)));
+
+        refresh();
 
         validate();
         repaint();
