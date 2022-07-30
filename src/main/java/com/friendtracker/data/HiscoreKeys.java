@@ -71,7 +71,7 @@ public class HiscoreKeys
     );
 
     /**
-     * Real skills, ordered in the way they should be displayed in the panel.
+     * Real skills, ordered in the way they should be displayed in the comparison panel.
      */
     public static final List<HiscoreSkill> SKILLS_COMPARISON_ORDER = ImmutableList.of(
             ATTACK,

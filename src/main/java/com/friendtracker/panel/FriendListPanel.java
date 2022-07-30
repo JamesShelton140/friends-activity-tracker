@@ -94,7 +94,7 @@ public class FriendListPanel extends FixedWidthPanel
         JPanel rangePanel = makeDropdownPanel(rangeDropdown, "Range");
 
         JComboBox<Enum> sortDropdown = makeNewDropdown(ConfigValues.SortOptions.values(), "sortCriteria");
-        sortDropdown.setSelectedItem(config.selectedRange());
+        sortDropdown.setSelectedItem(config.sortCriteria());
         JPanel sortPanel = makeDropdownPanel(sortDropdown, "Sort");
 
         northPanel.add(refreshListBtn);
@@ -117,7 +117,7 @@ public class FriendListPanel extends FixedWidthPanel
         dropdown.addActionListener(e -> {
             Enum selectedItem = dropdown.getItemAt(dropdown.getSelectedIndex());
             configManager.setConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME, key, selectedItem);
-            plugin.refresh();
+            plugin.redraw();
         });
 //        dropdown.addItemListener(e ->
 //        {

@@ -213,7 +213,16 @@ public class FriendTrackerPlugin extends Plugin
 
 	public void refresh()
 	{
+		if(panel == null) return;
+
 		panel.refresh();
+	}
+
+	public void redraw()
+	{
+		if(panel == null) return;
+
+		panel.redraw();
 	}
 
 	@Provides
