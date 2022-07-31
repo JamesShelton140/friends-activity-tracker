@@ -27,22 +27,88 @@
  */
 package com.friendtracker.panel.components;
 
+import com.friendtracker.FriendTrackerPlugin;
 import com.google.common.base.CaseFormat;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Experience;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
+import static net.runelite.client.hiscore.HiscoreSkill.OVERALL;
 import net.runelite.client.hiscore.HiscoreSkillType;
 import net.runelite.client.hiscore.Skill;
+import net.runelite.client.ui.FontManager;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class HiscoreUtil {
+
+    /**
+     * Gets the Icon of the supplied HiscoreSkill
+     *
+     * @param skill the HiscoreSkill to get the icon of
+     * @return the Icon for the given skill
+     */
+    public static Icon getIcon(HiscoreSkill skill)
+    {
+        String directory;
+        if (skill == null || skill == OVERALL)
+        {
+            directory = "/skill_icons/";
+        }
+        else if (skill.getType() == HiscoreSkillType.BOSS)
+        {
+            directory = "bosses/";
+        }
+        else
+        {
+            directory = "/skill_icons_small/";
+        }
+
+        String skillName = (skill == null ? "combat" : skill.name().toLowerCase()); // Do not need to consider "Combat" for comparison panel
+        String skillIcon = directory + skillName + ".png";
+        log.debug("Loading skill icon from {}", skillIcon);
+
+        return new ImageIcon(ImageUtil.loadImageResource(FriendTrackerPlugin.class, skillIcon));
+    }
+
+    public static JLabel getSkillLabel(HiscoreSkill skill, HiscoreSkillType padType)
+    {
+        JLabel label = new JLabel();
+        label.setToolTipText(skill == null ? "Combat" : skill.getName());
+        label.setFont(FontManager.getRunescapeSmallFont());
+        label.setText(HiscoreUtil.pad("--", padType));
+
+        return label;
+    }
+
+    public static JLabel getSkillLabelWithIcon(HiscoreSkill skill, HiscoreSkillType padType)
+    {
+        JLabel label = getSkillLabel(skill, padType);
+
+        label.setIcon(HiscoreUtil.getIcon(skill));
+
+        boolean totalLabel = skill == OVERALL || skill == null; //overall or combat
+        label.setIconTextGap(totalLabel ? 10 : 4);
+
+        return label;
+    }
+
+    public static JLabel getSkillLabelWithIcon(HiscoreSkill skill)
+    {
+        HiscoreSkillType skillType = skill == null ? HiscoreSkillType.SKILL : skill.getType();
+
+        return getSkillLabelWithIcon(skill, skillType);
+    }
+
     /**
      * Builds a html string to display on tooltip (when hovering a skill).
      */
-    static String detailsHtml(HiscoreResult result, HiscoreSkill skill)
+    public static String detailsHtml(HiscoreResult result, HiscoreSkill skill)
     {
         String openingTags = "<html><body style = 'padding: 5px;color:#989898'>";
         String closingTags = "</html><body>";
@@ -270,7 +336,7 @@ public class HiscoreUtil {
      * @param level the int to format
      * @return a formatted string representing the value of the supplied int
      */
-    static String formatLevel(int level)
+    public static String formatLevel(int level)
     {
         if (level < 10000)
         {
@@ -289,7 +355,7 @@ public class HiscoreUtil {
      * @param type the type used to determine pad size
      * @return the padded string
      */
-    static String pad(String str, HiscoreSkillType type)
+    public static String pad(String str, HiscoreSkillType type)
     {
         // Left pad label text to keep labels aligned
         int pad = type == HiscoreSkillType.BOSS ? 4 : 2;

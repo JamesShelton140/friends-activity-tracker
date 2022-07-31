@@ -24,13 +24,11 @@
  */
 package com.friendtracker.panel.components;
 
-import com.friendtracker.FriendTrackerPlugin;
 import com.friendtracker.data.HiscoreKeys;
 import java.awt.GridLayout;
 import java.util.EnumMap;
 import java.util.Map;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -45,8 +43,6 @@ import static net.runelite.client.hiscore.HiscoreSkill.*;
 import net.runelite.client.hiscore.HiscoreSkillType;
 import net.runelite.client.hiscore.Skill;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -77,7 +73,7 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
 
         add(makeSkillComparisonPanel(OVERALL));
 
-        for(HiscoreSkill skill : HiscoreKeys.SKILLS_COMPARISON_ORDER) //@todo change order to something more sensible. Maybe OSRS Hiscore order.
+        for(HiscoreSkill skill : HiscoreKeys.SKILLS_COMPARISON_ORDER)
         {
             add(makeSkillComparisonPanel(skill));
         }
@@ -98,14 +94,14 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
 
     private JPanel makeSkillComparisonPanel(HiscoreSkill skill)
     {
-        JLabel lowLabel = getSkillLabel(skill);
+        JLabel lowLabel = HiscoreUtil.getSkillLabel(skill, HiscoreSkillType.SKILL);
         lowLabel.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel highLabel = getSkillLabel(skill);
+        JLabel highLabel = HiscoreUtil.getSkillLabel(skill, HiscoreSkillType.SKILL);
         highLabel.setAlignmentX(RIGHT_ALIGNMENT);
         highLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
-        JLabel diffLabel = getSkillLabelWithIcon(skill);
+        JLabel diffLabel = HiscoreUtil.getSkillLabelWithIcon(skill, HiscoreSkillType.SKILL);
         diffLabel.setAlignmentX(CENTER_ALIGNMENT);
         diffLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -123,47 +119,6 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
         skillPanel.add(highLabel);
 
         return skillPanel;
-    }
-
-    private JLabel getSkillLabel(HiscoreSkill skill) //@todo move to util class
-    {
-        HiscoreSkillType skillType = skill == null ? HiscoreSkillType.SKILL : skill.getType();
-
-        JLabel label = new JLabel();
-        label.setToolTipText(skill == null ? "Combat" : skill.getName()); // Do not need to consider "Combat" for comparison panel
-        label.setFont(FontManager.getRunescapeSmallFont());
-        label.setText(StringUtils.leftPad("--", 2));
-
-        return label;
-    }
-
-    private JLabel getSkillLabelWithIcon(HiscoreSkill skill) //@todo move to util class
-    {
-        JLabel label = getSkillLabel(skill);
-
-        String directory;
-        if (skill == null || skill == OVERALL)
-        {
-            directory = "/skill_icons/";
-        }
-        else if (skill.getType() == HiscoreSkillType.BOSS)
-        {
-            directory = "bosses/";
-        }
-        else
-        {
-            directory = "/skill_icons_small/";
-        }
-
-        String skillName = (skill == null ? "combat" : skill.name().toLowerCase()); // Do not need to consider "Combat" for comparison panel
-        String skillIcon = directory + skillName + ".png";
-        log.debug("Loading skill icon from {}", skillIcon);
-
-        label.setIcon(new ImageIcon(ImageUtil.loadImageResource(FriendTrackerPlugin.class, skillIcon)));
-
-        boolean totalLabel = skill == OVERALL || skill == null; //overall or combat
-        label.setIconTextGap(totalLabel ? 10 : 4);
-        return label;
     }
 
     public void resetComparisonPanel()
@@ -235,7 +190,7 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
                 int level = -1;
 
                 // set difference to xp for skills
-                if (!isSkill || highExp != -1L) //@todo consider changing to (isSkill && highExp != -1L)
+                if (isSkill && highExp != -1L)
                 {
                     // for skills, level is only valid if exp is not -1
                     // otherwise level is always valid
@@ -245,11 +200,8 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
                     {
                         exp -= lowExp;
                     }
-                }
 
-                if ((isSkill && exp != -1))
-                {
-                    diffLabel.setText(HiscoreUtil.pad(QuantityFormatter.quantityToRSDecimalStack(exp, true), skill.getType())); //@todo consider moving into above if block
+                    diffLabel.setText(HiscoreUtil.pad(QuantityFormatter.quantityToRSDecimalStack(exp, true), HiscoreSkillType.SKILL));
                 }
 
                 // set difference to level for non-skills (bosses etc.)
@@ -261,11 +213,8 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
                     {
                         level -= ls.getLevel();
                     }
-                }
 
-                if((!isSkill && level != -1))
-                {
-                    diffLabel.setText(HiscoreUtil.pad(HiscoreUtil.formatLevel(level), skill.getType())); //@todo consider moving into above if block
+                    diffLabel.setText(HiscoreUtil.pad(HiscoreUtil.formatLevel(level), HiscoreSkillType.SKILL));
                 }
             }
         }

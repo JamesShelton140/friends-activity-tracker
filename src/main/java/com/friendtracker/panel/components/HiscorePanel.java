@@ -27,7 +27,6 @@
  */
 package com.friendtracker.panel.components;
 
-import com.friendtracker.FriendTrackerPlugin;
 import com.friendtracker.data.HiscoreKeys;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -36,7 +35,6 @@ import java.awt.Insets;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -49,8 +47,6 @@ import static net.runelite.client.hiscore.HiscoreSkill.*;
 import net.runelite.client.hiscore.HiscoreSkillType;
 import net.runelite.client.hiscore.Skill;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.ImageUtil;
 
 @Slf4j
 public class HiscorePanel extends FixedWidthPanel
@@ -140,35 +136,7 @@ public class HiscorePanel extends FixedWidthPanel
 
     public JPanel makeSkillPanel(HiscoreSkill skill)
     {
-        HiscoreSkillType skillType = skill == null ? HiscoreSkillType.SKILL : skill.getType();
-
-        JLabel label = new JLabel();
-        label.setToolTipText(skill == null ? "Combat" : skill.getName());
-        label.setFont(FontManager.getRunescapeSmallFont());
-        label.setText(HiscoreUtil.pad("--", skillType));
-
-        String directory;
-        if (skill == null || skill == OVERALL)
-        {
-            directory = "/skill_icons/";
-        }
-        else if (skill.getType() == HiscoreSkillType.BOSS)
-        {
-            directory = "bosses/";
-        }
-        else
-        {
-            directory = "/skill_icons_small/";
-        }
-
-        String skillName = (skill == null ? "combat" : skill.name().toLowerCase());
-        String skillIcon = directory + skillName + ".png";
-        log.debug("Loading skill icon from {}", skillIcon);
-
-        label.setIcon(new ImageIcon(ImageUtil.loadImageResource(FriendTrackerPlugin.class, skillIcon)));
-
-        boolean totalLabel = skill == OVERALL || skill == null; //overall or combat
-        label.setIconTextGap(totalLabel ? 10 : 4);
+        JLabel label = HiscoreUtil.getSkillLabelWithIcon(skill);
 
         JPanel skillPanel = new JPanel();
         skillPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
