@@ -28,6 +28,7 @@
 package com.friendtracker.panel.components;
 
 import com.google.common.base.CaseFormat;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Experience;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
@@ -36,6 +37,7 @@ import net.runelite.client.hiscore.Skill;
 import net.runelite.client.util.QuantityFormatter;
 import org.apache.commons.lang3.StringUtils;
 
+@Slf4j
 public class HiscoreUtil {
     /**
      * Builds a html string to display on tooltip (when hovering a skill).
@@ -262,6 +264,12 @@ public class HiscoreUtil {
         return openingTags + content + closingTags;
     }
 
+    /**
+     * Formats given int with a 'k' suffix if it is >=10000
+     *
+     * @param level the int to format
+     * @return a formatted string representing the value of the supplied int
+     */
     static String formatLevel(int level)
     {
         if (level < 10000)
@@ -274,6 +282,13 @@ public class HiscoreUtil {
         }
     }
 
+    /**
+     * Left pad the given string with a number of spaces depending on the given type.
+     *
+     * @param str the string to pad with spaces
+     * @param type the type used to determine pad size
+     * @return the padded string
+     */
     static String pad(String str, HiscoreSkillType type)
     {
         // Left pad label text to keep labels aligned
@@ -281,6 +296,15 @@ public class HiscoreUtil {
         return StringUtils.leftPad(str, pad);
     }
 
+    /**
+     * Returns the HiscoreResult field name of the HiscoreSkill represented by the supplied string.
+     *
+     * If the String given as parameter does not represent a HiscoreSkill then the parameter will be returned
+     * formatted to lower camel case.
+     *
+     * @param hiscoreSkill a string representing a HiscoreSkill in upper underscore case format
+     * @return a string representing the same HiscoreSkill in lower camel case format
+     */
     public static String hiscoreSkillToHiscoreResultSkill(String hiscoreSkill)
     {
         String skill = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, hiscoreSkill);
@@ -302,5 +326,47 @@ public class HiscoreUtil {
         }
 
         return skill;
+    }
+
+    public static HiscoreResult getDifference(HiscoreResult highResult, HiscoreResult lowResult)
+    {
+        HiscoreResult result = new HiscoreResult();
+
+        for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
+        {
+            Skill highSkill = highResult.getSkill(hiscoreSkill);
+            Skill lowSkill = lowResult.getSkill(hiscoreSkill);
+
+            Skill skill = getDifference(highSkill, lowSkill);
+
+            String fieldName = HiscoreUtil.hiscoreSkillToHiscoreResultSkill(hiscoreSkill.name());
+            try
+            {
+                HiscoreResult.class.getMethod("set" + StringUtils.capitalize(fieldName), Skill.class)
+                        .invoke(result, skill);
+            }
+            catch (Exception e)
+            {
+                log.error("Failed to set {} for {} during deserialization. Exception: {}", fieldName, result.getPlayer(), e.getStackTrace());
+            }
+        }
+
+        return result;
+    }
+
+    public static Skill getDifference(Skill highSkill, Skill lowSkill)
+    {
+        int rank = (int)skillPropDiff(highSkill.getRank(), lowSkill.getRank());
+        long experience = skillPropDiff(highSkill.getExperience(), lowSkill.getExperience());
+        int level = (int)skillPropDiff(highSkill.getLevel(), lowSkill.getLevel());
+
+        return new Skill(rank, level, experience);
+    }
+
+    public static long skillPropDiff(long high, long low)
+    {
+        long diff = high;
+        diff -= low == -1 ? 0 : low;
+        return diff;
     }
 }

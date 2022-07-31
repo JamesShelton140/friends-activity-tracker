@@ -34,6 +34,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -55,6 +56,8 @@ public class FriendPanel extends FixedWidthPanel {
     private final FriendTrackerConfig config;
 
     private final Friend friend;
+
+    private HiscoreResult displayedResult;
 
     // Box title components
     private final JPanel logTitle = new JPanel();
@@ -136,13 +139,13 @@ public class FriendPanel extends FixedWidthPanel {
     public void applyHiscoreResult(HiscoreResult result)
     {
         hiscorePanel.applyHiscoreResult(result);
+        overallLabel.setText("+" + QuantityFormatter.quantityToStackSize(result.getOverall().getExperience()) + " xp");
+        overallLabel.setToolTipText("+" + QuantityFormatter.formatNumber(result.getOverall().getExperience()) + " xp");
+        displayedResult = result;
     }
 
     void redraw()
     {
-        overallLabel.setText("+" + QuantityFormatter.quantityToStackSize(0) + " xp");
-        overallLabel.setToolTipText("+" + QuantityFormatter.formatNumber(0) + " xp");
-
         validate();
         repaint();
     }
@@ -200,5 +203,19 @@ public class FriendPanel extends FixedWidthPanel {
 
             component.setForeground(brighten ? color.brighter() : color.darker());
         }
+    }
+
+    public boolean meetsCriteria()
+    {
+        String nameLowercase = friend.getName().toLowerCase();
+        List<String> descriptionLowercase = friend.getPreviousNames();
+        if (plugin.getFriendTextFilter() != null &&
+                !nameLowercase.contains(plugin.getFriendTextFilter()) &&
+                !descriptionLowercase.contains(plugin.getFriendTextFilter()))
+        {
+            return false;
+        }
+
+        return true;
     }
 }

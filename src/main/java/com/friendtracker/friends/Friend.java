@@ -27,10 +27,16 @@ package com.friendtracker.friends;
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
 import com.friendtracker.panel.FriendPanel;
+import com.friendtracker.panel.components.HiscoreUtil;
 import java.time.Instant;
+import java.time.Period;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +71,7 @@ public class Friend {
     public FriendPanel generatePanel(FriendTrackerPlugin plugin, FriendTrackerConfig config)
     {
         FriendPanel friendPanel = new FriendPanel(plugin, config, this);
-        friendPanel.applyHiscoreResult(hiscoreSnapshots.lastEntry().getValue()); //@todo generate hiscoreResult based on filter settings
+        friendPanel.applyHiscoreResult(hiscoreChangeInTheLast(config.selectedRange().getPeriod(), config.rangeTolerance().getPeriod()));
 
         return friendPanel;
     }
@@ -138,6 +144,171 @@ public class Friend {
     public String previousNamesVertical()
     {
         return String.join("\n", previousNames);
+    }
+
+    /**
+     *  Finds the closest snapshot to the given Instant within the following:
+     * <ol>
+     *     <li>The snapshot at the given instant or, if it does not exist,</li>
+     *     <li>The snapshot closest to the given Instant greater than it within the configured tolerance or, if one does not exist,</li>
+     *     <li>The snapshot closest to the given Instant less than it within the configured tolerance or, if one does not exist,</li>
+     *     <li>The snapshot closest to the given Instant greater than it.</li>
+     * </ol>
+     *
+     * @param instant the point in time to measure gained xp from
+     * @param tolerance the tolerance period to prioritise
+     * @return the closest snapshot found to the target instant
+     */
+    public Optional<HiscoreResult> getSnapshotAt(Instant instant, Period tolerance)
+    {
+        Optional<Instant> target;
+
+        // The snapshot at the given instant
+        if(hiscoreSnapshots.containsKey(instant)) return Optional.of(hiscoreSnapshots.get(instant));
+
+        TreeSet<Instant> hiscoreSet = hiscoreSnapshots.keySet().stream()
+                .filter(inst -> inst.compareTo(instant.minus(tolerance)) >= 0)
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        // The snapshot closest to the given Instant greater than it within the configured tolerance
+        target = hiscoreSet.stream()
+                .filter(inst -> inst.compareTo(instant) >= 0 && inst.compareTo(instant.plus(tolerance)) <= 0)
+                .min(Comparator.naturalOrder());
+
+        if(target.isPresent()) return Optional.of(hiscoreSnapshots.get(target.get()));
+
+        // The snapshot closest to the given Instant less than it within the configured tolerance
+        target = hiscoreSet.stream()
+                .filter(inst -> inst.compareTo(instant) <= 0)
+                .max(Comparator.naturalOrder());
+
+        if(target.isPresent()) return Optional.of(hiscoreSnapshots.get(target.get()));
+
+        // The snapshot closest to the given Instant greater than it
+        target = hiscoreSet.stream()
+                .filter(inst -> inst.compareTo(instant) >= 0)
+                .min(Comparator.naturalOrder());
+
+        return target.map(value -> hiscoreSnapshots.get(value));
+    }
+
+    /**
+     * Returns the total xp gained since the supplied Instant until now within the specified tolerance.
+     *
+     * The first hiscore snapshot used to calculate xp gained is the closest to the given Instant within the following:
+     * <ol>
+     *     <li>The snapshot at the given instant or, if it does not exist,</li>
+     *     <li>The snapshot closest to the given Instant greater than it within the configured tolerance or, if one does not exist,</li>
+     *     <li>The snapshot closest to the given Instant less than it within the configured tolerance or, if one does not exist,</li>
+     *     <li>The snapshot closest to the given Instant greater than it.</li>
+     * </ol>
+     *
+     * @param instant the point in time to measure gained xp from
+     * @param tolerance the tolerance period to prioritise
+     * @return the total xp gained since the specified instant
+     */
+    public long xpGainedSince(Instant instant, Period tolerance)
+    {
+        long currentTotalXp = getMostRecentResult().getOverall().getExperience();
+
+        Optional<HiscoreResult> baseSnapshot = getSnapshotAt(instant, tolerance);
+
+        return baseSnapshot.map(hiscoreResult -> currentTotalXp - hiscoreResult.getOverall().getExperience()).orElse(0L);
+    }
+
+    /**
+     * Returns the total xp gained in the specified period before now within the specified tolerance.
+     *
+     * If period is equal to {@link Period#ZERO} then the most recent snapshot's overall xp is returned.
+     * Otherwise, this method calls {@link Friend#xpGainedSince} with parameter {@code Instant.now().minus(period)}.
+     *
+     * @param period the time period before now to measure gained xp from
+     * @param tolerance the tolerance period to prioritise
+     * @return the total xp gained in the specified period before now
+     */
+    public long xpGainedInTheLast(Period period, Period tolerance)
+    {
+        if(period.isZero()) return getMostRecentResult().getOverall().getExperience();
+
+        return xpGainedSince(Instant.now().minus(period), tolerance);
+    }
+
+    /**
+     * Returns the total KC gained since the supplied Instant until now within the specified tolerance.
+     *
+     * The first hiscore snapshot used to calculate KC gained is the closest to the given Instant within the following:
+     * <ol>
+     *     <li>The snapshot at the given instant or, if it does not exist,</li>
+     *     <li>The snapshot closest to the given Instant greater than it within the configured tolerance or, if one does not exist,</li>
+     *     <li>The snapshot closest to the given Instant less than it within the configured tolerance or, if one does not exist,</li>
+     *     <li>The snapshot closest to the given Instant greater than it.</li>
+     * </ol>
+     *
+     * @param instant the point in time to measure gained KC from
+     * @return the total KC gained since the specified instant
+     */
+    public int kcGainedSince(Instant instant, Period tolerance)
+    {
+        int currentTotalKc = sumNonSkillKc(getMostRecentResult());
+
+        Optional<HiscoreResult> baseSnapshot = getSnapshotAt(instant, tolerance);
+
+        return baseSnapshot.map(hiscoreResult -> currentTotalKc - sumNonSkillKc(hiscoreResult)).orElse(0);
+    }
+
+    /**
+     * Returns the total kc gained in the specified period before now within the specified tolerance.
+     *
+     * If period is equal to {@link Period#ZERO} then the most recent snapshot's total kc is returned.
+     * Otherwise, this method calls {@link Friend#kcGainedSince} with parameter {@code Instant.now().minus(period)}.
+     *
+     * @param period the time period before now to measure gained kc from
+     * @return the total kc gained in the specified period before now
+     */
+    public int kcGainedInTheLast(Period period, Period tolerance)
+    {
+        if(period.isZero()) return sumNonSkillKc(getMostRecentResult());
+
+        return kcGainedSince(Instant.now().minus(period), tolerance);
+    }
+
+    /**
+     * Sums the level of all activity and boss HiscoreSkills of the supplied HiscoreResult.
+     *
+     * @param result the result to sum over
+     * @return the sum total level of every non-skill HiscoreSkill
+     */
+    public int sumNonSkillKc(HiscoreResult result)
+    {
+        if (result == null) return 0;
+
+        int totalKc = 0;
+
+        for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
+        {
+            if(hiscoreSkill.getType() == HiscoreSkillType.SKILL ||
+                    hiscoreSkill.getType() == HiscoreSkillType.OVERALL) continue;
+
+            totalKc += result.getSkill(hiscoreSkill).getLevel();
+        }
+
+        return totalKc;
+    }
+
+    public HiscoreResult hiscoreChangeSince(Instant instant, Period tolerance)
+    {
+        HiscoreResult currentResult = getMostRecentResult();
+
+        Optional<HiscoreResult> baseSnapshot = getSnapshotAt(instant, tolerance);
+
+        return baseSnapshot.map(result -> HiscoreUtil.getDifference(currentResult, result)).orElseGet(HiscoreResult::new);
+    }
+
+    public HiscoreResult hiscoreChangeInTheLast(Period period, Period tolerance)
+    {
+        if(period.isZero()) return getMostRecentResult();
+
+        return hiscoreChangeSince(Instant.now().minus(period), tolerance);
     }
 
     /**

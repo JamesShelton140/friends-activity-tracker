@@ -1,4 +1,6 @@
 /*
+ * Copyright (c) 2020, Zoinkwiz
+ * Copyright (c) 2021, Tyler Hardy
  * Copyright (c) 2022, James Shelton <https://github.com/JamesShelton140>
  * All rights reserved.
  *
@@ -26,6 +28,7 @@ package com.friendtracker.panel;
 
 import com.friendtracker.FriendTrackerConfig;
 import com.friendtracker.FriendTrackerPlugin;
+import com.friendtracker.config.ComparatorFactory;
 import com.friendtracker.config.ConfigValues;
 import com.friendtracker.friends.Friend;
 import com.friendtracker.friends.FriendManager;
@@ -35,7 +38,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
@@ -45,7 +47,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
@@ -58,8 +59,11 @@ public class FriendListPanel extends FixedWidthPanel
     private final FriendTrackerPlugin plugin;
     private final FriendTrackerConfig config;
     private final ConfigManager configManager;
+    private final ComparatorFactory comparatorFactory;
     //    private final JButton refreshListBtn = new JButton();
-    JPanel listWrapper = new JPanel();
+    private final JPanel listWrapper = new JPanel();
+
+    public final ArrayList<FriendPanel> friendPanels = new ArrayList<>();
 
 
     public FriendListPanel(FriendTrackerPlugin plugin, FriendTrackerConfig config, ConfigManager configManager)
@@ -67,6 +71,7 @@ public class FriendListPanel extends FixedWidthPanel
         this.plugin = plugin;
         this.config = config;
         this.configManager = configManager;
+        this.comparatorFactory = new ComparatorFactory(config);
         setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
         setLayout(new BorderLayout());
@@ -119,15 +124,6 @@ public class FriendListPanel extends FixedWidthPanel
             configManager.setConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME, key, selectedItem);
             plugin.redraw();
         });
-//        dropdown.addItemListener(e ->
-//        {
-//            if (e.getStateChange() == ItemEvent.SELECTED)
-//            {
-//                Enum source = (Enum) e.getItem();
-//                questHelperPlugin.getConfigManager().setConfiguration("questhelper", key,
-//                        source);
-//            }
-//        });
 
         return dropdown;
     }
@@ -151,12 +147,11 @@ public class FriendListPanel extends FixedWidthPanel
     {
         JPanel filtersPanel = new JPanel();
         filtersPanel.setMinimumSize(new Dimension(PluginPanel.PANEL_WIDTH, 0));
-//        filtersPanel.setAlignmentX(LEFT_ALIGNMENT);
         filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
 
         SearchBox textSearch = new SearchBox();
         textSearch.addTextChangedListener(() -> {
-//            plugin.taskTextFilter = textSearch.getText().toLowerCase();
+            plugin.setFriendTextFilter(textSearch.getText().toLowerCase());
             refresh();
         });
 
@@ -178,13 +173,16 @@ public class FriendListPanel extends FixedWidthPanel
 
         return friendManager.getFriends().values()
                 .stream()
-                .sorted(Comparator.comparing(Friend::getName, String.CASE_INSENSITIVE_ORDER)) // Sort by name @Todo change to configurable sort comparator
+                .sorted(comparatorFactory.createFriendComparatorFromConfig())
                 .collect(Collectors.toList());
     }
 
     public void refresh()
     {
-
+        for(FriendPanel friendPanel : friendPanels)
+        {
+            friendPanel.setVisible(friendPanel.meetsCriteria());
+        }
     }
 
     public void redraw()
@@ -192,8 +190,14 @@ public class FriendListPanel extends FixedWidthPanel
         assert SwingUtilities.isEventDispatchThread();
 
         listWrapper.removeAll();
+        friendPanels.clear();
 
-        getFriends().forEach(friend -> listWrapper.add(friend.generatePanel(plugin, config)));
+        getFriends().forEach(friend ->
+        {
+            FriendPanel friendPanel = friend.generatePanel(plugin, config);
+            listWrapper.add(friendPanel);
+            friendPanels.add(friendPanel);
+        });
 
         refresh();
 

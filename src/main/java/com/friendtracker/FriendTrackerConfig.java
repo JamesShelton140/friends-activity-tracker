@@ -22,6 +22,18 @@ public interface FriendTrackerConfig extends Config
 
 	@ConfigItem
 	(
+		position = 2,
+		keyName = "rangeTolerance",
+		name = "Activity range tolerance",
+		description = "Configures the tolerance of the activity range. Select All to set tolerance to zero."
+	)
+	default ConfigValues.RangeOptions rangeTolerance()
+	{
+		return ConfigValues.RangeOptions.ALL;
+	}
+
+	@ConfigItem
+	(
 		position = 101,
 		keyName = "selectedRange",
 		name = "Range to display",

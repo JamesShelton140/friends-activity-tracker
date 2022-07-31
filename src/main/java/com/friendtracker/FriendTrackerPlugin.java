@@ -14,6 +14,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -37,7 +38,7 @@ public class FriendTrackerPlugin extends Plugin
 	public static final String CONFIG_GROUP_NAME = "friend-tracker";
 	@Inject private Client client;
 	@Inject private ConfigManager configManager;
-	@Inject private FriendTrackerConfig config;
+	@Getter @Inject private FriendTrackerConfig config;
 	@Inject private FriendDataClient friendDataClient;
 	@Inject private TrackerDataStore trackerDataStore;
 	@Inject private ClientToolbar clientToolbar;
@@ -46,6 +47,8 @@ public class FriendTrackerPlugin extends Plugin
 	private NavigationButton navButton;
 	@Getter private FriendManager friendManager;
 
+	@Getter @Setter
+	private String friendTextFilter;
 
 	@Override
 	protected void startUp() throws Exception
@@ -222,7 +225,10 @@ public class FriendTrackerPlugin extends Plugin
 	{
 		if(panel == null) return;
 
-		panel.redraw();
+		SwingUtilities.invokeLater(() ->
+		{
+			panel.redraw();
+		});
 	}
 
 	@Provides
