@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
@@ -48,6 +49,7 @@ public class FriendTrackerPlugin extends Plugin
 	private FriendTrackerPanel panel;
 	private NavigationButton navButton;
 	@Getter private FriendManager friendManager;
+	private long lastAccount;
 
 	@Getter @Setter
 	private String friendTextFilter;
@@ -74,8 +76,6 @@ public class FriendTrackerPlugin extends Plugin
 	{
 		clientToolbar.removeNavigation(navButton);
 	}
-
-	private long lastAccount;
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
@@ -105,9 +105,13 @@ public class FriendTrackerPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (event.getKey().equals("wrapMergeCandidates"))
+		if (event.getGroup().equals(CONFIG_GROUP_NAME))
 		{
-			panel.refresh();
+			switch(event.getKey())
+			{
+				case "wrapMergeCandidates":
+					panel.refresh();
+			}
 		}
 	}
 
@@ -125,6 +129,7 @@ public class FriendTrackerPlugin extends Plugin
 			log.debug("Remove friend: '{}'", displayName);
 			friendManager.removeFriend(displayName, previousName);
 			redraw();
+			saveCurrentFriendData();
 		}
 	}
 
@@ -137,58 +142,67 @@ public class FriendTrackerPlugin extends Plugin
 	{
 		net.runelite.api.Friend[] friendNames = this.client.getFriendContainer().getMembers();
 
-		List<Friend> currentFriends = new ArrayList<>(friendManager.getFriends().values());
+		boolean emptyList = friendManager.getFriends().values().isEmpty();
 
 		for(net.runelite.api.Friend friendName : friendNames)
 		{
-			Friend friend = new Friend(UUID.randomUUID().toString(), friendName.getName(), friendName.getPrevName());
-
-			log.info("Fetching HiscoreResult for " + friendName.getName());
-			friendDataClient.lookupAsync(friendName.getName()).whenCompleteAsync((result, exception) ->
-			{
-				if(result == null || exception != null)
-				{
-					StringBuilder stringBuilder = new StringBuilder("Hiscore lookup for \"" + friendName.getName() + "\" failed");
-					if(exception != null) stringBuilder.append(" with exception: ").append(exception.getMessage());
-
-					log.warn(stringBuilder.toString());
-					return;
-				}
-
-				friend.addSnapshotNow(result);
-
-				List<Friend> mergeCandidates = friendManager.getValidMergeCandidates(friend);
-
-				if(mergeCandidates.isEmpty() || currentFriends.isEmpty())
-				{
-					SwingUtilities.invokeLater(() ->
-					{
-						resolveMerge(friend, "");
-						log.info("No valid merge candidates. Added without merge: {}", friend.getName());
-					});
-					return;
-				}
-
-				if(mergeCandidates.size() == 1)
-				{
-					SwingUtilities.invokeLater(() ->
-					{
-						resolveMerge(friend, mergeCandidates.get(0).getID());
-						log.info("One valid merge candidate. Merged {} into {}. ", friend.getName(), mergeCandidates.get(0).getName());
-					});
-					return;
-				}
-
-				SwingUtilities.invokeLater(() ->
-				{
-					queryMerge(friend, mergeCandidates);
-					log.info("Merge query called for {}.", friend.getName());
-				});
-			});
-
+			lookupAndMergeAsync(friendName.getName(), friendName.getPrevName(), emptyList);
 		}
 
 		SwingUtilities.invokeLater(() -> panel.redraw());
+	}
+
+	private void lookupAndMergeAsync(String name, String previousName, boolean emptyList)
+	{
+		Friend friend = new Friend(UUID.randomUUID().toString(), name, previousName);
+
+		log.info("Fetching HiscoreResult for " + name);
+		friendDataClient.lookupAsync(name).whenCompleteAsync((result, exception) ->
+		{
+			if(result == null || exception != null)
+			{
+				StringBuilder stringBuilder = new StringBuilder("Hiscore lookup for \"" + name + "\" failed");
+				if(exception != null) stringBuilder.append(" with exception: ").append(exception.getMessage());
+
+				log.warn(stringBuilder.toString());
+				return;
+			}
+
+			friend.addSnapshotNow(result);
+
+			mergeNewSnapshot(friend, emptyList);
+		});
+	}
+
+	private void mergeNewSnapshot(Friend friend, boolean emptyList)
+	{
+		List<Friend> mergeCandidates = friendManager.getValidMergeCandidates(friend);
+
+		if(emptyList || mergeCandidates.isEmpty())
+		{
+			SwingUtilities.invokeLater(() ->
+			{
+				resolveMerge(friend, "");
+				log.info("No valid merge candidates. Added without merge: {}", friend.getName());
+			});
+			return;
+		}
+
+		if(mergeCandidates.size() == 1)
+		{
+			SwingUtilities.invokeLater(() ->
+			{
+				resolveMerge(friend, mergeCandidates.get(0).getID());
+				log.info("One valid merge candidate. Merged {} into {}. ", friend.getName(), mergeCandidates.get(0).getName());
+			});
+			return;
+		}
+
+		SwingUtilities.invokeLater(() ->
+		{
+			queryMerge(friend, mergeCandidates);
+			log.info("Merge query called for {}.", friend.getName());
+		});
 	}
 
 	/**
