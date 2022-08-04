@@ -136,6 +136,10 @@ public class FriendTrackerPlugin extends Plugin
 
 	public void removeFriend(String displayName, String previousName)
 	{
+		if (!navButton.isSelected())
+		{
+			navButton.getOnSelect().run();
+		}
 		friendManager.removeFriend(displayName, previousName);
 		redraw();
 		saveCurrentFriendData();
@@ -206,8 +210,12 @@ public class FriendTrackerPlugin extends Plugin
 		SwingUtilities.invokeLater(() -> panel.redraw());
 	}
 
-	private void lookupAndMergeAsync(String name, String previousName, boolean emptyList)
+	public void lookupAndMergeAsync(String name, String previousName, boolean emptyList)
 	{
+		if (!navButton.isSelected())
+		{
+			navButton.getOnSelect().run();
+		}
 		Friend friend = new Friend(UUID.randomUUID().toString(), name, previousName);
 
 		log.info("Fetching HiscoreResult for " + name);
