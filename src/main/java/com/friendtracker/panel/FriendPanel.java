@@ -40,7 +40,10 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
 import net.runelite.client.hiscore.HiscoreResult;
@@ -99,6 +102,27 @@ public class FriendPanel extends FixedWidthPanel {
         logTitle.setLayout(new BoxLayout(logTitle, BoxLayout.X_AXIS));
         logTitle.setBorder(new EmptyBorder(7, 7, 7, 7));
         logTitle.setBackground(ColorScheme.DARKER_GRAY_COLOR.darker());
+
+        final JMenuItem delete = new JMenuItem("Delete Data");
+        delete.addActionListener(e ->
+        {
+            int selectedValue = JOptionPane.showConfirmDialog(
+                    this,
+                    "Delete all data for '" + friend.getName() + "'? \n This action cannot be undone.",
+                    "Delete Friend Data Confirmation",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (selectedValue == JOptionPane.YES_OPTION)
+            {
+                plugin.removeFriend(friend.getName(), null);
+            }
+        });
+
+        final JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
+        popupMenu.add(delete);
+        logTitle.setComponentPopupMenu(popupMenu);
 
         SwingUtil.removeButtonDecorations(collapseBtn);
         collapseBtn.setIcon(COLLAPSE_ICON);
