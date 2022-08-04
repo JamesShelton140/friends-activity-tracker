@@ -23,13 +23,13 @@ public interface FriendTrackerConfig extends Config
 	@ConfigItem
 	(
 		position = 2,
-		keyName = "rangeTolerance",
-		name = "Activity range tolerance",
-		description = "Configures the tolerance of the activity range. Select All to set tolerance to zero."
+		keyName = "deleteDataOnRemovedFriend",
+		name = "Delete data for removed friends",
+		description = "When enabled data will automatically be deleted for friends that are removed from your friends list."
 	)
-	default ConfigValues.RangeOptions rangeTolerance()
+	default boolean deleteDataOnRemovedFriend()
 	{
-		return ConfigValues.RangeOptions.ALL;
+		return true;
 	}
 
 	@ConfigItem
@@ -46,8 +46,20 @@ public interface FriendTrackerConfig extends Config
 	}
 
 	@ConfigItem
+			(
+					position = 102,
+					keyName = "rangeTolerance",
+					name = "Activity range tolerance",
+					description = "Configures the tolerance of the activity range. Select All to set tolerance to zero."
+			)
+	default ConfigValues.RangeOptions rangeTolerance()
+	{
+		return ConfigValues.RangeOptions.ALL;
+	}
+
+	@ConfigItem
 	(
-		position = 102,
+		position = 103,
 		keyName = "sortCriteria",
 		name = "Sorting criteria",
 		description = "",

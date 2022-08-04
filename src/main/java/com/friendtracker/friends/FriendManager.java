@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,36 @@ public class FriendManager {
         friends.put(friend.getID(), friend);
 
         log.info("Added {} to friend list.", friend.getName());
+    }
+
+    public void remove(Friend friend)
+    {
+        friends.remove(friend.getID());
+
+        log.info("Removed {} from friend list.", friend.getName());
+    }
+
+    public void removeFriend(String name, String previousName)
+    {
+        Optional<Friend> friend = friends.values().stream()
+                .filter(friend1 -> name.equals(friend1.getName()))
+                .findFirst();
+
+        if(friend.isPresent())
+        {
+            remove(friend.get());
+            return;
+        }
+
+        if(previousName == null) return;
+        // If friend not found matching name search for one matching previousName
+        friend = friends.values().stream()
+                .filter(friend1 -> previousName.equals(friend1.getName()))
+                .findFirst();
+
+        friend.ifPresent(f -> {
+
+        });
     }
 
     public void merge(Friend newFriend, String mergeTargetID)

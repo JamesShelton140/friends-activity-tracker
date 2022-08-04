@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.RemovedFriend;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -27,6 +28,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
@@ -106,6 +108,23 @@ public class FriendTrackerPlugin extends Plugin
 		if (event.getKey().equals("wrapMergeCandidates"))
 		{
 			panel.refresh();
+		}
+	}
+
+	@Subscribe
+	public void onRemovedFriend(RemovedFriend event)
+	{
+		if(config.deleteDataOnRemovedFriend())
+		{
+			String displayName = Text.toJagexName(event.getNameable().getName());
+			String previousName = event.getNameable().getPrevName();
+			if(previousName != null)
+			{
+				previousName = Text.toJagexName(previousName);
+			}
+			log.debug("Remove friend: '{}'", displayName);
+			friendManager.removeFriend(displayName, previousName);
+			redraw();
 		}
 	}
 
