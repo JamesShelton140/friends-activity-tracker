@@ -29,6 +29,7 @@ import com.friendtracker.FriendTrackerPlugin;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +63,10 @@ public class FriendTrackerPanel extends PluginPanel
     private final BufferedImage githubImage = ImageUtil.resizeImage(ImageUtil.loadImageResource(FriendTrackerPlugin.class, "github.png"), 16, 16);
     private final Icon GITHUB_ICON = new ImageIcon(githubImage);
     private final Icon GITHUB_ROLLOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(githubImage, -180));
+
+    private final BufferedImage discordImage = ImageUtil.resizeImage(ImageUtil.loadImageResource(FriendTrackerPlugin.class, "discord.png"), 16, 16);
+    private final Icon DISCORD_ICON = new ImageIcon(discordImage);
+    private final Icon DISCORD_ROLLOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(discordImage, -180));
 
     private final Client client;
     private final ConfigManager configManager;
@@ -112,6 +117,9 @@ public class FriendTrackerPanel extends PluginPanel
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(FontManager.getRunescapeSmallFont());
 
+        final JPanel headerButtons = new JPanel(new GridLayout(1, 2, 10, 0));
+        headerButtons.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
         // Create GitHub link button
         JButton githubButton = new JButton();
         SwingUtil.removeButtonDecorations(githubButton);
@@ -124,10 +132,24 @@ public class FriendTrackerPanel extends PluginPanel
                     LinkBrowser.browse("https://github.com/JamesShelton140/friends-tracker");
                 });
         githubButton.setUI(new BasicButtonUI());
+        headerButtons.add(githubButton);
 
+        // Create Discord link button
+        JButton discordButton = new JButton();
+        SwingUtil.removeButtonDecorations(discordButton);
+        discordButton.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        discordButton.setIcon(DISCORD_ICON);
+        discordButton.setRolloverIcon(DISCORD_ROLLOVER_ICON);
+        discordButton.setToolTipText("Report issues and make suggestion on Discord");
+        discordButton.addActionListener(e ->
+        {
+            LinkBrowser.browse("https://discord.gg/Th7e3VCVWD");
+        });
+        discordButton.setUI(new BasicButtonUI());
+        headerButtons.add(discordButton);
 
         headerContainer.add(titleLabel, BorderLayout.WEST);
-        headerContainer.add(githubButton, BorderLayout.EAST);
+        headerContainer.add(headerButtons, BorderLayout.EAST);
         add(headerContainer, BorderLayout.NORTH);
 
         loggedInPanel.setLayout(new BoxLayout(loggedInPanel, BoxLayout.Y_AXIS));
