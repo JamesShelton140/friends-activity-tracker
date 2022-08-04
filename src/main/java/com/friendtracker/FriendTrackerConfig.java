@@ -34,6 +34,31 @@ public interface FriendTrackerConfig extends Config
 
 	@ConfigItem
 	(
+		position = 3,
+		keyName = "refreshMenuOption",
+		name = "Refresh menu option",
+		description = "Show Refresh Tracker menu option in friend list menus"
+	)
+	default boolean refreshMenuOption()
+	{
+		return true;
+	}
+
+	@ConfigItem
+	(
+		position = 4,
+		keyName = "deleteMenuOption",
+		name = "Delete menu option",
+		description = "Show Delete Tracker Data menu option in friend list menus"
+	)
+	default boolean deleteMenuOption()
+	{
+		return true;
+	}
+
+
+	@ConfigItem
+	(
 		position = 101,
 		keyName = "selectedRange",
 		name = "Range to display",

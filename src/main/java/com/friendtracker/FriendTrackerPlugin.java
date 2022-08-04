@@ -19,8 +19,11 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.MenuAction;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.RemovedFriend;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -127,9 +130,60 @@ public class FriendTrackerPlugin extends Plugin
 				previousName = Text.toJagexName(previousName);
 			}
 			log.debug("Remove friend: '{}'", displayName);
-			friendManager.removeFriend(displayName, previousName);
-			redraw();
-			saveCurrentFriendData();
+			removeFriend(displayName, previousName);
+		}
+	}
+
+	public void removeFriend(String displayName, String previousName)
+	{
+		friendManager.removeFriend(displayName, previousName);
+		redraw();
+		saveCurrentFriendData();
+	}
+
+	private static final String REFRESH = "Refresh Tracker";
+	private static final String DELETE = "Delete Tracker Data";
+
+	@Subscribe
+	public void onMenuEntryAdded(MenuEntryAdded event)
+	{
+		if (!config.refreshMenuOption() && !config.deleteMenuOption()) {
+			return;
+		}
+
+		final String option = event.getOption();
+		final int componentId = event.getActionParam1();
+		final int groupId = WidgetInfo.TO_GROUP(componentId);
+
+		if (groupId == WidgetInfo.FRIENDS_LIST.getGroupId() && option.equals("Delete"))
+		{
+			if(config.refreshMenuOption())
+			{
+				client.createMenuEntry(-2)
+					.setOption(REFRESH)
+					.setTarget(event.getTarget())
+					.setType(MenuAction.RUNELITE)
+					.setIdentifier(event.getIdentifier())
+					.onClick(e ->
+					{
+						String target = Text.removeTags(e.getTarget());
+						lookupAndMergeAsync(target, null, false);
+					});
+			}
+
+			if(config.deleteMenuOption())
+			{
+				client.createMenuEntry(-3)
+					.setOption(DELETE)
+					.setTarget(event.getTarget())
+					.setType(MenuAction.RUNELITE)
+					.setIdentifier(event.getIdentifier())
+					.onClick(e ->
+					{
+						String target = Text.removeTags(e.getTarget());
+						removeFriend(target, null);
+					});
+			}
 		}
 	}
 
