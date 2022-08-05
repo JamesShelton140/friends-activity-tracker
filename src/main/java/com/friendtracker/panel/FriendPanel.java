@@ -233,13 +233,8 @@ public class FriendPanel extends FixedWidthPanel {
     {
         String nameLowercase = friend.getName().toLowerCase();
         List<String> descriptionLowercase = friend.getPreviousNames();
-        if (plugin.getFriendTextFilter() != null &&
-                !nameLowercase.contains(plugin.getFriendTextFilter()) &&
-                !descriptionLowercase.contains(plugin.getFriendTextFilter()))
-        {
-            return false;
-        }
-
-        return true;
+        return plugin.getFriendTextFilter() == null ||
+                nameLowercase.contains(plugin.getFriendTextFilter()) ||
+                descriptionLowercase.contains(plugin.getFriendTextFilter());
     }
 }
