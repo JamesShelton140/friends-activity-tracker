@@ -4,10 +4,61 @@ import com.friendtracker.config.ConfigValues;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
 
 @ConfigGroup(FriendTrackerPlugin.CONFIG_GROUP_NAME)
 public interface FriendTrackerConfig extends Config
 {
+	@ConfigSection
+	(
+		name = "Sort Priority",
+		description = "Priority for sort criteria",
+		position = 0,
+		closedByDefault = true
+	)
+	String sortSection = "sortPriority";
+
+	@ConfigItem
+	(
+		position = 12,
+		keyName = "secondarySort",
+		name = "Secondary Sort",
+		description = "Set the sort criteria to be used if the primary criteria is equal.",
+		section = sortSection
+	)
+	default ConfigValues.SortOptions secondarySort()
+	{
+		return ConfigValues.SortOptions.ALPHA;
+	}
+
+	@ConfigItem
+	(
+		position = 13,
+		keyName = "tertiarySort",
+		name = "Tertiary Sort",
+		description = "Set the sort criteria to be used if the secondary criteria is equal.",
+		section = sortSection
+	)
+	default ConfigValues.SortOptions tertiarySort()
+	{
+		return ConfigValues.SortOptions.XP;
+	}
+
+	@ConfigItem
+	(
+		position = 14,
+		keyName = "quaternarySort",
+		name = "Quaternary Sort",
+		description = "Set the sort criteria to be used if the tertiary criteria is equal.",
+		section = sortSection
+	)
+	default ConfigValues.SortOptions quaternarySort()
+	{
+		return ConfigValues.SortOptions.KC;
+	}
+
+
+
 	@ConfigItem
 	(
 		position = 1,
@@ -71,25 +122,25 @@ public interface FriendTrackerConfig extends Config
 	}
 
 	@ConfigItem
-			(
-					position = 1011,
-					keyName = "rangeNumber",
-					name = "Range Number",
-					description = "",
-					hidden = true
-			)
+	(
+		position = 1011,
+		keyName = "rangeNumber",
+		name = "Range Number",
+		description = "",
+		hidden = true
+	)
 	default int rangeNumber()
 	{
 		return 1;
 	}
 
 	@ConfigItem
-			(
-					position = 102,
-					keyName = "rangeTolerance",
-					name = "Activity range tolerance",
-					description = "Configures the tolerance of the activity range. Select All to set tolerance to zero."
-			)
+	(
+		position = 102,
+		keyName = "rangeTolerance",
+		name = "Activity range tolerance",
+		description = "Configures the tolerance of the activity range. Select All to set tolerance to zero."
+	)
 	default ConfigValues.RangeOptions rangeTolerance()
 	{
 		return ConfigValues.RangeOptions.ALL;
@@ -109,13 +160,13 @@ public interface FriendTrackerConfig extends Config
 	}
 
 	@ConfigItem
-			(
-					position = 104,
-					keyName = "sortOrder",
-					name = "Sorting order",
-					description = "",
-					hidden = true
-			)
+	(
+		position = 104,
+		keyName = "sortOrder",
+		name = "Sorting order",
+		description = "",
+		hidden = true
+	)
 	default ConfigValues.OrderOptions sortOrder()
 	{
 		return ConfigValues.OrderOptions.ASCENDING;

@@ -112,6 +112,12 @@ public class FriendTrackerPlugin extends Plugin
 			{
 				case "wrapMergeCandidates":
 					panel.refresh();
+					break;
+				case "secondarySort":
+				case "tertiarySort":
+				case "quaternarySort":
+					panel.redraw();
+					break;
 			}
 		}
 	}

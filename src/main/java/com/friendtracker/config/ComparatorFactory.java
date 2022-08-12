@@ -46,9 +46,8 @@ public class ComparatorFactory
         ConfigValues.SortOptions sortCriteria = config.sortCriteria();
         ConfigValues.OrderOptions sortOrder = config.sortOrder();
         Period range = config.selectedRange().getPeriod();
-        Period tolerance = config.rangeTolerance().getPeriod();
-
         final Period finalRange = range.multipliedBy(config.rangeNumber());
+        final Period tolerance = config.rangeTolerance().getPeriod();
 
         switch(sortCriteria.getComparator())
         {
@@ -67,6 +66,31 @@ public class ComparatorFactory
 
         if(sortOrder.equals(ConfigValues.OrderOptions.DESCENDING) && comparator != null) comparator = comparator.reversed();
 
+        comparator = thenComparing(comparator, config.secondarySort());
+        comparator = thenComparing(comparator, config.tertiarySort());
+        comparator = thenComparing(comparator, config.quaternarySort());
+
         return comparator;
+    }
+
+    private Comparator<Friend> thenComparing(Comparator<Friend> comparator, ConfigValues.SortOptions sortCriteria)
+    {
+        if(sortCriteria.equals(config.sortCriteria())) return comparator;
+
+        Period range = config.selectedRange().getPeriod();
+        final Period finalRange = range.multipliedBy(config.rangeNumber());
+        final Period tolerance = config.rangeTolerance().getPeriod();
+
+        switch(sortCriteria.getComparator())
+        {
+            case "ALPHANUMERIC":
+                return comparator.thenComparing(Friend::getName, String.CASE_INSENSITIVE_ORDER);
+            case "TOTAL_XP":
+                return comparator.thenComparingLong(friend -> friend.xpGainedInTheLast(finalRange, tolerance));
+            case "TOTAL_KC":
+                return comparator.thenComparingInt(friend -> friend.kcGainedInTheLast(finalRange, tolerance));
+            default:
+                return comparator;
+        }
     }
 }
