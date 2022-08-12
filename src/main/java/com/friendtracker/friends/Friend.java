@@ -114,7 +114,7 @@ public class Friend {
             // skip this skill if it is null in the base result
             if ((baseSkill = baseHiscoreResult.getSkill(hiscoreSkill)) == null) continue;
 
-            // if base is not null but new if null then return invalid
+            // if base is not null but new is null then return invalid
             if ((newSkill = newHiscoreResult.getSkill(hiscoreSkill)) == null)
             {
                 log.warn("{} rejected for merge due to HiscoreSkill {} being null.", friend.getName(), hiscoreSkill.getName());
@@ -301,7 +301,8 @@ public class Friend {
 
         Optional<HiscoreResult> baseSnapshot = getSnapshotAt(instant, tolerance);
 
-        return baseSnapshot.map(result -> HiscoreUtil.getDifference(currentResult, result)).orElseGet(HiscoreResult::new);
+        return baseSnapshot.map(result -> HiscoreUtil.getDifference(currentResult, result))
+                .orElseGet(() -> HiscoreUtil.getDifference(currentResult, currentResult));
     }
 
     public HiscoreResult hiscoreChangeInTheLast(Period period, Period tolerance)
