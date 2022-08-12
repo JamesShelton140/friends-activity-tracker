@@ -48,7 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 @Slf4j
-public class HiscoreComparisonPanel extends FixedWidthPanel
+public class HiscoreComparisonPanel extends AbstractHiscorePanel
 {
 
     private final Map<HiscoreSkill, CompLabel> compSkillLabels = new EnumMap<>(HiscoreSkill.class);
@@ -67,7 +67,7 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
         createPanel();
     }
 
-    private void createPanel()
+    protected void createPanel()
     {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -94,14 +94,14 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
 
     private JPanel makeSkillComparisonPanel(HiscoreSkill skill)
     {
-        JLabel lowLabel = HiscoreUtil.getSkillLabel(skill, HiscoreSkillType.SKILL);
+        JLabel lowLabel = getSkillLabel(skill, HiscoreSkillType.SKILL);
         lowLabel.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel highLabel = HiscoreUtil.getSkillLabel(skill, HiscoreSkillType.SKILL);
+        JLabel highLabel = getSkillLabel(skill, HiscoreSkillType.SKILL);
         highLabel.setAlignmentX(RIGHT_ALIGNMENT);
         highLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
-        JLabel diffLabel = HiscoreUtil.getSkillLabelWithIcon(skill, HiscoreSkillType.SKILL);
+        JLabel diffLabel = getSkillLabelWithIcon(skill, HiscoreSkillType.SKILL);
         diffLabel.setAlignmentX(CENTER_ALIGNMENT);
         diffLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -131,6 +131,15 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
 
             entry.getValue().lowLabel.setText(StringUtils.leftPad("--", 2));
         }
+    }
+
+    /**
+     * Satisfies superclass. Use {@link HiscoreComparisonPanel#applyHiscoreResult(HiscoreResult, HiscoreResult)}.
+     * @param result
+     */
+    public void applyHiscoreResult(HiscoreResult result)
+    {
+        applyHiscoreResult(result, result);
     }
 
     public void applyHiscoreResult(HiscoreResult lowResult, HiscoreResult highResult)
@@ -170,10 +179,10 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
 
                     if (level != -1)
                     {
-                        label.setText(StringUtils.leftPad(HiscoreUtil.formatLevel(level), 2));
+                        label.setText(StringUtils.leftPad(formatLevel(level), 2));
                     }
                 }
-                label.setToolTipText(HiscoreUtil.detailsHtml(result, skill));
+                label.setToolTipText(detailsHtml(result, skill));
             }
 
             Skill hs, ls;
@@ -201,7 +210,7 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
                         exp -= lowExp;
                     }
 
-                    diffLabel.setText(HiscoreUtil.pad(QuantityFormatter.quantityToRSDecimalStack(exp, true), HiscoreSkillType.SKILL));
+                    diffLabel.setText(pad(QuantityFormatter.quantityToRSDecimalStack(exp, true), HiscoreSkillType.SKILL));
                 }
 
                 // set difference to level for non-skills (bosses etc.)
@@ -214,7 +223,7 @@ public class HiscoreComparisonPanel extends FixedWidthPanel
                         level -= ls.getLevel();
                     }
 
-                    diffLabel.setText(HiscoreUtil.pad(HiscoreUtil.formatLevel(level), HiscoreSkillType.SKILL));
+                    diffLabel.setText(pad(formatLevel(level), HiscoreSkillType.SKILL));
                 }
             }
         }

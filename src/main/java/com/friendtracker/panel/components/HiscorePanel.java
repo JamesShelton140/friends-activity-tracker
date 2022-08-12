@@ -49,7 +49,7 @@ import net.runelite.client.hiscore.Skill;
 import net.runelite.client.ui.ColorScheme;
 
 @Slf4j
-public class HiscorePanel extends FixedWidthPanel
+public class HiscorePanel extends AbstractHiscorePanel
 {
 
     // Not an enummap because we need null keys for combat
@@ -61,7 +61,7 @@ public class HiscorePanel extends FixedWidthPanel
     }
 
 
-    private void createPanel()
+    protected void createPanel()
     {
         this.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
         this.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -136,7 +136,7 @@ public class HiscorePanel extends FixedWidthPanel
 
     public JPanel makeSkillPanel(HiscoreSkill skill)
     {
-        JLabel label = HiscoreUtil.getSkillLabelWithIcon(skill);
+        JLabel label = getSkillLabelWithIcon(skill);
 
         JPanel skillPanel = new JPanel();
         skillPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -188,11 +188,11 @@ public class HiscorePanel extends FixedWidthPanel
 
                 if (level != -1)
                 {
-                    label.setText(HiscoreUtil.pad(HiscoreUtil.formatLevel(level), skill.getType()));
+                    label.setText(pad(formatLevel(level), skill.getType()));
                 }
             }
 
-            label.setToolTipText(HiscoreUtil.detailsHtml(result, skill));
+            label.setToolTipText(detailsHtml(result, skill));
         }
     }
 
