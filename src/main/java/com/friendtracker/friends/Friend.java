@@ -71,7 +71,7 @@ public class Friend {
     public FriendPanel generatePanel(FriendTrackerPlugin plugin, FriendTrackerConfig config)
     {
         FriendPanel friendPanel = new FriendPanel(plugin, config, this);
-        friendPanel.applyHiscoreResult(hiscoreChangeInTheLast(config.selectedRange().getPeriod(), config.rangeTolerance().getPeriod()));
+        friendPanel.applyHiscoreResult(hiscoreChangeInTheLast(config.selectedRange().getPeriod().multipliedBy(config.rangeNumber()), config.rangeTolerance().getPeriod()));
 
         return friendPanel;
     }

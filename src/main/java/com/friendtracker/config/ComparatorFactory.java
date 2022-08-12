@@ -44,26 +44,28 @@ public class ComparatorFactory
         Comparator<Friend> comparator = null;
 
         ConfigValues.SortOptions sortCriteria = config.sortCriteria();
+        ConfigValues.OrderOptions sortOrder = config.sortOrder();
         Period range = config.selectedRange().getPeriod();
         Period tolerance = config.rangeTolerance().getPeriod();
+
+        final Period finalRange = range.multipliedBy(config.rangeNumber());
 
         switch(sortCriteria.getComparator())
         {
             case "ALPHANUMERIC":
-//                comparator = (friend1, friend2) -> Comparator.comparing(Friend::getName, String.CASE_INSENSITIVE_ORDER).compare(friend1, friend2);
                 comparator = Comparator.comparing(Friend::getName, String.CASE_INSENSITIVE_ORDER);
                 break;
             case "TOTAL_XP":
-                comparator = Comparator.comparingLong(friend -> friend.xpGainedInTheLast(range, tolerance));
+                comparator = Comparator.comparingLong(friend -> friend.xpGainedInTheLast(finalRange, tolerance));
                 break;
             case "TOTAL_KC":
-                comparator = Comparator.comparingInt(friend -> friend.kcGainedInTheLast(range, tolerance));
+                comparator = Comparator.comparingInt(friend -> friend.kcGainedInTheLast(finalRange, tolerance));
                 break;
             default:
                 comparator = (friend1, friend2) -> Comparator.comparing(Friend::getName, String.CASE_INSENSITIVE_ORDER).compare(friend1, friend2);
         }
 
-        if(!sortCriteria.isAscending() && comparator != null) comparator = comparator.reversed();
+        if(sortOrder.equals(ConfigValues.OrderOptions.DESCENDING) && comparator != null) comparator = comparator.reversed();
 
         return comparator;
     }

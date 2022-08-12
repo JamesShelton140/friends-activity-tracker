@@ -37,9 +37,12 @@ import com.friendtracker.panel.components.SearchBox;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -94,23 +97,51 @@ public class FriendListPanel extends FixedWidthPanel
         refreshListBtn.setAlignmentX(CENTER_ALIGNMENT);
         refreshListBtn.addActionListener(e -> plugin.refreshList());
 
-        JComboBox<Enum> rangeDropdown = makeNewDropdown(ConfigValues.RangeOptions.values(), "selectedRange");
+        Enum[] rangeOptions = Arrays.stream(ConfigValues.RangeOptions.values()).filter(ConfigValues.RangeOptions::isCoreUnit).toArray(Enum[]::new);
+        JComboBox<Enum> rangeDropdown = makeNewDropdown(rangeOptions, "selectedRange");
+        rangeDropdown.setPreferredSize(new Dimension(115, 24));
         rangeDropdown.setSelectedItem(config.selectedRange());
-        JPanel rangePanel = makeDropdownPanel(rangeDropdown, "Range");
+        JComboBox<Integer> numberDropdown = makeNumberDropdown();
+        numberDropdown.setSelectedItem(config.rangeNumber());
+        JPanel rangePanel = makeDropdownPanel("Range", numberDropdown, rangeDropdown);
 
         JComboBox<Enum> sortDropdown = makeNewDropdown(ConfigValues.SortOptions.values(), "sortCriteria");
         sortDropdown.setSelectedItem(config.sortCriteria());
-        JPanel sortPanel = makeDropdownPanel(sortDropdown, "Sort");
+        JPanel sortPanel = makeDropdownPanel("Sort", sortDropdown);
+
+        JComboBox<Enum> orderDropdown = makeNewDropdown(ConfigValues.OrderOptions.values(), "sortOrder");
+        sortDropdown.setSelectedItem(config.sortOrder());
+        JPanel orderPanel = makeDropdownPanel("Order", orderDropdown);
 
         northPanel.add(refreshListBtn);
         northPanel.add(Box.createVerticalStrut(5));
         northPanel.add(rangePanel);
         northPanel.add(Box.createVerticalStrut(2));
         northPanel.add(sortPanel);
+        northPanel.add(Box.createVerticalStrut(2));
+        northPanel.add(orderPanel);
         northPanel.add(Box.createVerticalStrut(5));
         northPanel.add(getSearchPanel());
 
         return northPanel;
+    }
+
+    private JComboBox<Integer> makeNumberDropdown()
+    {
+        String key = "rangeNumber";
+        Integer[] values = IntStream.rangeClosed(1, 31).boxed().toArray(Integer[]::new);
+
+        JComboBox<Integer> dropdown = new JComboBox<Integer>(values);
+        dropdown.setFocusable(false);
+        dropdown.setForeground(Color.WHITE);
+        dropdown.setPreferredSize(new Dimension(60, 24));
+        dropdown.addActionListener(e -> {
+            Integer selectedItem = dropdown.getItemAt(dropdown.getSelectedIndex());
+            configManager.setConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME, key, selectedItem);
+            plugin.redraw();
+        });
+
+        return dropdown;
     }
 
     private JComboBox<Enum> makeNewDropdown(Enum[] values, String key)
@@ -128,7 +159,7 @@ public class FriendListPanel extends FixedWidthPanel
         return dropdown;
     }
 
-    private JPanel makeDropdownPanel(JComboBox dropdown, String name)
+    private JPanel makeDropdownPanel(String name, JComboBox... dropdowns)
     {
         // Filters
         JLabel filterName = new JLabel(name);
@@ -138,7 +169,15 @@ public class FriendListPanel extends FixedWidthPanel
         filtersPanel.setLayout(new BorderLayout());
         filtersPanel.setMinimumSize(new Dimension(PluginPanel.PANEL_WIDTH, 0));
         filtersPanel.add(filterName, BorderLayout.CENTER);
-        filtersPanel.add(dropdown, BorderLayout.EAST);
+
+        JPanel dropdownPanel = new JPanel();
+//        dropdownPanel.setLayout(new GridLayout(1,dropdowns.length));
+        dropdownPanel.setLayout(new BoxLayout(dropdownPanel, BoxLayout.X_AXIS));
+        for(JComboBox dropdown : dropdowns)
+        {
+            dropdownPanel.add(dropdown);
+        }
+        filtersPanel.add(dropdownPanel, BorderLayout.EAST);
 
         return filtersPanel;
     }

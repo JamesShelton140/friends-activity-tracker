@@ -54,43 +54,32 @@ public class ConfigValues
         }
     }
 
-//    @Getter
-//    @AllArgsConstructor
-//    public enum SortOptions
-//    {
-//        ALPHA_ASCENDING("Alphanumeric (asc)", (friend1, friend2) -> Comparator.comparing(Friend::getName, String.CASE_INSENSITIVE_ORDER).compare(friend1, friend2)),
-//        ALPHA_DESCENDING("Alphanumeric (desc)", (friend1, friend2) -> Comparator.comparing(Friend::getName, String.CASE_INSENSITIVE_ORDER).reversed().compare(friend1, friend2)),
-////        XP_ASCENDING("XP Gained (Asc)", new XpGainedComparator()),
-////        XP_DESCENDING("XP Gained (Desc)", new XpGainedComparator().reversed()),
-//        XP_ASCENDING("XP Gained (Asc)", (friend1, friend2) -> Comparator.comparingLong(Friend::xpGainedInConfigPeriod).compare(friend1, friend2)),
-//        XP_DESCENDING("XP Gained (Desc)", (friend1, friend2) -> Comparator.comparingLong(Friend::xpGainedInConfigPeriod).reversed().compare(friend1, friend2)),
-//        KC_ASCENDING("KC Gained (Asc)", (friend1, friend2) -> Comparator.comparingInt(Friend::kcGainedInConfigPeriod).compare(friend1, friend2)),
-//        KC_DESCENDING("KC Gained (Desc)", (friend1, friend2) -> Comparator.comparingInt(Friend::kcGainedInConfigPeriod).reversed().compare(friend1, friend2));
-//
-//        private String displayName;
-//        private Comparator<Friend> comparator;
-//
-//        @Override
-//        public String toString()
-//        {
-//            return displayName;
-//        }
-//    }
-
     @Getter
     @AllArgsConstructor
     public enum SortOptions
     {
-        ALPHA_ASCENDING("Alphanumeric (asc)", "ALPHANUMERIC", true),
-        ALPHA_DESCENDING("Alphanumeric (desc)", "ALPHANUMERIC", false),
-        XP_ASCENDING("XP Gained (Asc)", "TOTAL_XP", true),
-        XP_DESCENDING("XP Gained (Desc)", "TOTAL_XP", false),
-        KC_ASCENDING("KC Gained (Asc)", "TOTAL_KC", true),
-        KC_DESCENDING("KC Gained (Desc)", "TOTAL_KC", false);
+        ALPHA("Alphanumeric", "ALPHANUMERIC"),
+        XP("XP Gained", "TOTAL_XP"),
+        KC("KC Gained", "TOTAL_KC");
 
         private String displayName;
         private String comparator;
-        private boolean ascending;
+
+        @Override
+        public String toString()
+        {
+            return displayName;
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public enum OrderOptions
+    {
+        ASCENDING("Ascending"),
+        DESCENDING("Descending");
+
+        private String displayName;
 
         @Override
         public String toString()

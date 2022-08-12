@@ -72,6 +72,19 @@ public interface FriendTrackerConfig extends Config
 
 	@ConfigItem
 			(
+					position = 1011,
+					keyName = "rangeNumber",
+					name = "Range Number",
+					description = "",
+					hidden = true
+			)
+	default int rangeNumber()
+	{
+		return 1;
+	}
+
+	@ConfigItem
+			(
 					position = 102,
 					keyName = "rangeTolerance",
 					name = "Activity range tolerance",
@@ -92,6 +105,19 @@ public interface FriendTrackerConfig extends Config
 	)
 	default ConfigValues.SortOptions sortCriteria()
 	{
-		return ConfigValues.SortOptions.ALPHA_ASCENDING;
+		return ConfigValues.SortOptions.ALPHA;
+	}
+
+	@ConfigItem
+			(
+					position = 104,
+					keyName = "sortOrder",
+					name = "Sorting order",
+					description = "",
+					hidden = true
+			)
+	default ConfigValues.OrderOptions sortOrder()
+	{
+		return ConfigValues.OrderOptions.ASCENDING;
 	}
 }
