@@ -143,6 +143,17 @@ public class FriendTrackerPlugin extends Plugin
 		saveCurrentFriendData();
 	}
 
+	public void removeFriend(Friend friend)
+	{
+		if (!navButton.isSelected())
+		{
+			navButton.getOnSelect().run();
+		}
+		friendManager.remove(friend);
+		redraw();
+		saveCurrentFriendData();
+	}
+
 	private static final String REFRESH = "Refresh Tracker";
 	private static final String DELETE = "Delete Tracker Data";
 

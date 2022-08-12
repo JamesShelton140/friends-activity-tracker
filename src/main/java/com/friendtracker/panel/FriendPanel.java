@@ -117,7 +117,7 @@ public class FriendPanel extends FixedWidthPanel {
 
             if (selectedValue == JOptionPane.YES_OPTION)
             {
-                plugin.removeFriend(friend.getName(), null);
+                plugin.removeFriend(friend);
             }
         });
 

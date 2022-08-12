@@ -88,6 +88,7 @@ public class FriendManager {
         if(friend.isPresent())
         {
             remove(friend.get());
+            log.info("Removed {} from friend list.", name);
             return;
         }
 
