@@ -28,6 +28,7 @@ import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
+import net.runelite.client.hiscore.HiscoreSkillType;
 import net.runelite.client.hiscore.Skill;
 import org.apache.commons.lang3.StringUtils;
 
@@ -127,5 +128,32 @@ public class HiscoreUtil
         long diff = high;
         diff -= low == -1 ? 0 : low;
         return diff;
+    }
+
+    /**
+     * Sums the level of all activity and boss HiscoreSkills of the supplied HiscoreResult.
+     *
+     * @param result the result to sum over
+     * @return the sum total level of every non-skill HiscoreSkill
+     */
+    public static int sumNonSkillKc(HiscoreResult result)
+    {
+        if (result == null) return 0;
+
+        int totalKc = 0;
+
+        for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
+        {
+            if(hiscoreSkill.getType() == HiscoreSkillType.SKILL ||
+                    hiscoreSkill.getType() == HiscoreSkillType.OVERALL ||
+                    (hiscoreSkill.getName().contains("Clue Scrolls") && !hiscoreSkill.equals(HiscoreSkill.CLUE_SCROLL_ALL))
+            ) continue;
+
+            int level = result.getSkill(hiscoreSkill).getLevel();
+
+            totalKc += level == -1 ? 0 : level;
+        }
+
+        return totalKc;
     }
 }

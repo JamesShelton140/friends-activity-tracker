@@ -249,11 +249,11 @@ public class Friend {
      */
     public int kcGainedSince(Instant instant, Period tolerance)
     {
-        int currentTotalKc = sumNonSkillKc(getMostRecentResult());
+        int currentTotalKc = HiscoreUtil.sumNonSkillKc(getMostRecentResult());
 
         Optional<HiscoreResult> baseSnapshot = getSnapshotAt(instant, tolerance);
 
-        return baseSnapshot.map(hiscoreResult -> currentTotalKc - sumNonSkillKc(hiscoreResult)).orElse(0);
+        return baseSnapshot.map(hiscoreResult -> currentTotalKc - HiscoreUtil.sumNonSkillKc(hiscoreResult)).orElse(0);
     }
 
     /**
@@ -267,33 +267,12 @@ public class Friend {
      */
     public int kcGainedInTheLast(Period period, Period tolerance)
     {
-        if(period.isZero()) return sumNonSkillKc(getMostRecentResult());
+        if(period.isZero()) return HiscoreUtil.sumNonSkillKc(getMostRecentResult());
 
         return kcGainedSince(Instant.now().minus(period), tolerance);
     }
 
-    /**
-     * Sums the level of all activity and boss HiscoreSkills of the supplied HiscoreResult.
-     *
-     * @param result the result to sum over
-     * @return the sum total level of every non-skill HiscoreSkill
-     */
-    public int sumNonSkillKc(HiscoreResult result)
-    {
-        if (result == null) return 0;
 
-        int totalKc = 0;
-
-        for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
-        {
-            if(hiscoreSkill.getType() == HiscoreSkillType.SKILL ||
-                    hiscoreSkill.getType() == HiscoreSkillType.OVERALL) continue;
-
-            totalKc += result.getSkill(hiscoreSkill).getLevel();
-        }
-
-        return totalKc;
-    }
 
     public HiscoreResult hiscoreChangeSince(Instant instant, Period tolerance)
     {

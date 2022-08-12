@@ -29,6 +29,7 @@ import com.friendtracker.FriendTrackerPlugin;
 import com.friendtracker.friends.Friend;
 import com.friendtracker.panel.components.FixedWidthPanel;
 import com.friendtracker.panel.components.HiscorePanel;
+import com.friendtracker.panel.components.HiscoreUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -44,6 +45,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
 import net.runelite.client.hiscore.HiscoreResult;
@@ -148,6 +150,7 @@ public class FriendPanel extends FixedWidthPanel {
         overallLabel.setFont(FontManager.getRunescapeSmallFont());
         overallLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
         overallLabel.setIcon(new ImageIcon(ImageUtil.loadImageResource(FriendTrackerPlugin.class, "/skill_icons_small/overall.png")));
+        overallLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         logTitle.add(overallLabel);
 
         skillContainer.setBorder(new EmptyBorder(0,0,0,0));
@@ -163,9 +166,36 @@ public class FriendPanel extends FixedWidthPanel {
     public void applyHiscoreResult(HiscoreResult result)
     {
         hiscorePanel.applyHiscoreResult(result);
-        overallLabel.setText("+" + QuantityFormatter.quantityToStackSize(result.getOverall().getExperience()) + " xp");
-        overallLabel.setToolTipText("+" + QuantityFormatter.formatNumber(result.getOverall().getExperience()) + " xp");
+
+        overallLabel.setText(textHTML(result));
+        overallLabel.setToolTipText(toolTipHTML(result));
         displayedResult = result;
+    }
+
+    public String textHTML(HiscoreResult result)
+    {
+        String openingTags = "<html><body style = 'color:#989898'>";
+        String closingTags = "</html><body>";
+
+        String content = "";
+
+        content += "<p>+" + QuantityFormatter.quantityToStackSize(result.getOverall().getExperience()) + " xp" + "</p>";
+        content += "<p>+" + QuantityFormatter.quantityToStackSize(HiscoreUtil.sumNonSkillKc(result)) + " kc" + "</p>";
+
+        return openingTags + content + closingTags;
+    }
+
+    public String toolTipHTML(HiscoreResult result)
+    {
+        String openingTags = "<html><body style = 'padding: 5px;color:#989898'>";
+        String closingTags = "</html><body>";
+
+        String content = "";
+
+        content += "<p><span style = 'color:white'>XP:</span> +" + QuantityFormatter.formatNumber(result.getOverall().getExperience()) + "</p>";
+        content += "<p><span style = 'color:white'>KC:</span> +" + QuantityFormatter.formatNumber(HiscoreUtil.sumNonSkillKc(result)) + "</p>";
+
+        return openingTags + content + closingTags;
     }
 
     void redraw()
