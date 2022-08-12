@@ -34,7 +34,7 @@ import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Friend Tracker"
+	name = "Friends Activity Tracker"
 )
 public class FriendTrackerPlugin extends Plugin
 {
