@@ -60,7 +60,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
      * @param skill the HiscoreSkill to get the icon of
      * @return the Icon for the given skill
      */
-    public static Icon getIcon(HiscoreSkill skill)
+    public Icon getIcon(HiscoreSkill skill)
     {
         String directory;
         if (skill == null || skill == OVERALL)
@@ -76,14 +76,14 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
             directory = "/skill_icons_small/";
         }
 
-        String skillName = (skill == null ? "combat" : skill.name().toLowerCase()); // Do not need to consider "Combat" for comparison panel
+        String skillName = (skill == null ? "combat" : skill.name().toLowerCase());
         String skillIcon = directory + skillName + ".png";
         log.debug("Loading skill icon from {}", skillIcon);
 
         return new ImageIcon(ImageUtil.loadImageResource(FriendTrackerPlugin.class, skillIcon));
     }
 
-    public static JLabel getSkillLabel(HiscoreSkill skill, HiscoreSkillType padType)
+    public JLabel getSkillLabel(HiscoreSkill skill, HiscoreSkillType padType)
     {
         JLabel label = new JLabel();
         label.setToolTipText(skill == null ? "Combat" : skill.getName());
@@ -93,7 +93,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
         return label;
     }
 
-    public static JLabel getSkillLabelWithIcon(HiscoreSkill skill, HiscoreSkillType padType)
+    public JLabel getSkillLabelWithIcon(HiscoreSkill skill, HiscoreSkillType padType)
     {
         JLabel label = getSkillLabel(skill, padType);
 
@@ -105,7 +105,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
         return label;
     }
 
-    public static JLabel getSkillLabelWithIcon(HiscoreSkill skill)
+    public JLabel getSkillLabelWithIcon(HiscoreSkill skill)
     {
         HiscoreSkillType skillType = skill == null ? HiscoreSkillType.SKILL : skill.getType();
 
@@ -115,7 +115,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
     /**
      * Builds a html string to display on tooltip (when hovering a skill).
      */
-    public static String detailsHtml(HiscoreResult result, HiscoreSkill skill)
+    public String detailsHtml(HiscoreResult result, HiscoreSkill skill)
     {
         String openingTags = "<html><body style = 'padding: 5px;color:#989898'>";
         String closingTags = "</html><body>";
@@ -343,7 +343,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
      * @param level the int to format
      * @return a formatted string representing the value of the supplied int
      */
-    public static String formatLevel(int level)
+    public String formatLevel(int level)
     {
         if (level < 10000)
         {
@@ -362,7 +362,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
      * @param type the type used to determine pad size
      * @return the padded string
      */
-    public static String pad(String str, HiscoreSkillType type)
+    public String pad(String str, HiscoreSkillType type)
     {
         // Left pad label text to keep labels aligned
         int pad = type == HiscoreSkillType.BOSS ? 4 : 2;
