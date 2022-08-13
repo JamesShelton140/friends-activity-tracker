@@ -69,7 +69,7 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
         }
         else if (skill.getType() == HiscoreSkillType.BOSS)
         {
-            directory = "bosses/";
+            directory = "/net/runelite/client/plugins/hiscore/bosses/";
         }
         else
         {
