@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.hiscore.HiscoreClient;
 import net.runelite.client.hiscore.HiscoreEndpoint;
 import net.runelite.client.hiscore.HiscoreResult;
-import okhttp3.OkHttpClient;
 
 @Slf4j
 public class FriendDataClient {
@@ -43,9 +42,9 @@ public class FriendDataClient {
     private final HiscoreClient hiscoreClient;
 
     @Inject
-    public FriendDataClient(OkHttpClient okHttpClient)
+    public FriendDataClient(HiscoreClient hiscoreClient)
     {
-        this.hiscoreClient = new HiscoreClient(okHttpClient);
+        this.hiscoreClient = hiscoreClient;
     }
 
     public CompletableFuture<HiscoreResult> lookupAsync(String name)
