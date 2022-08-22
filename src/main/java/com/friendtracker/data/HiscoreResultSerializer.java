@@ -31,6 +31,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
+import java.util.EnumMap;
+import java.util.Map;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
 import net.runelite.client.hiscore.HiscoreSkillType;
@@ -45,21 +47,24 @@ public class HiscoreResultSerializer implements JsonSerializer<HiscoreResult>
 
         jsonObject.addProperty("player", result.getPlayer());
 
+        Map<HiscoreSkill, Skill> skills = new EnumMap<>(result.getSkills());
         Skill skill;
         Gson gson = new Gson();
 
         // add skills with non-negative xp or level to json
         for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
         {
-            skill = result.getSkill(hiscoreSkill);
+            skill = skills.getOrDefault(hiscoreSkill, null);
             // @todo change to test only rank if that is valid
-            if(skill.getExperience() != -1L ||
-                    (hiscoreSkill.getType() != HiscoreSkillType.SKILL && skill.getLevel() != -1))
+            if(skill == null ||
+                    (hiscoreSkill.getType() == HiscoreSkillType.SKILL && skill.getExperience() == -1L) ||
+                    (hiscoreSkill.getType() != HiscoreSkillType.SKILL && skill.getLevel() == -1))
             {
-                String name = HiscoreUtil.hiscoreSkillToHiscoreResultSkill(hiscoreSkill.name());
-                jsonObject.add(name, gson.toJsonTree(skill));
+                skills.remove(hiscoreSkill);
             }
         }
+
+        jsonObject.add("skills", gson.toJsonTree(skills));
 
         return jsonObject;
     }

@@ -29,8 +29,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
+import java.util.EnumMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
@@ -44,26 +47,49 @@ public class HiscoreResultDeserializer implements JsonDeserializer<HiscoreResult
     public HiscoreResult deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException
     {
         Gson gson = new Gson();
+        HiscoreResult result;
 
-        HiscoreResult result = gson.fromJson(jsonElement, HiscoreResult.class);
+        result = gson.fromJson(jsonElement, HiscoreResult.class);
+
+        if(result.getSkills() == null)
+        {
+            return deserializeLegacyFormat(jsonElement, type, jsonDeserializationContext);
+        }
+
+        Map<HiscoreSkill, Skill> skills = result.getSkills();
 
         for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
         {
-            if(result.getSkill(hiscoreSkill) == null)
+            if(!skills.containsKey(hiscoreSkill) || skills.get(hiscoreSkill) == null)
             {
-                String fieldName = HiscoreUtil.hiscoreSkillToHiscoreResultSkill(hiscoreSkill.name());
-                try
-                {
-                    HiscoreResult.class.getMethod("set" + StringUtils.capitalize(fieldName), Skill.class)
-                            .invoke(result, new Skill(-1,-1,-1));
-                }
-                catch (Exception e)
-                {
-                    log.error("Failed to set {} for {} during deserialization. Exception: {}", fieldName, result.getPlayer(), e.getStackTrace());
-                }
+                skills.put(hiscoreSkill, new Skill(-1,-1,-1));
             }
         }
 
-        return result;
+        return new HiscoreResult(result.getPlayer(), skills);
+    }
+
+    public HiscoreResult deserializeLegacyFormat(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException
+    {
+        log.info("Deserializing legacy HiscoreResult data.");
+        Gson gson = new Gson();
+
+        JsonObject jsonObject  = jsonElement.getAsJsonObject();
+        Map<HiscoreSkill, Skill> skills = new EnumMap<>(HiscoreSkill.class);
+
+        for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
+        {
+            String fieldName = HiscoreUtil.hiscoreSkillToHiscoreResultSkill(hiscoreSkill.name());
+            if(jsonObject.has(fieldName))
+            {
+                skills.put(hiscoreSkill, gson.fromJson(jsonObject.get(fieldName), Skill.class));
+            }
+            else
+            {
+                skills.put(hiscoreSkill, new Skill(-1,-1,-1));
+            }
+        }
+
+        return new HiscoreResult(jsonObject.get("player").getAsString(), skills);
     }
 }

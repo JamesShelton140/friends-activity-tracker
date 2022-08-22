@@ -49,6 +49,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
 import net.runelite.client.hiscore.HiscoreResult;
+import net.runelite.client.hiscore.HiscoreSkill;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
@@ -179,7 +180,7 @@ public class FriendPanel extends FixedWidthPanel {
 
         String content = "";
 
-        content += "<p>+" + QuantityFormatter.quantityToStackSize(result.getOverall().getExperience()) + " xp" + "</p>";
+        content += "<p>+" + QuantityFormatter.quantityToStackSize(result.getSkill(HiscoreSkill.OVERALL).getExperience()) + " xp" + "</p>";
         content += "<p>+" + QuantityFormatter.quantityToStackSize(HiscoreUtil.sumNonSkillKc(result)) + " kc" + "</p>";
 
         return openingTags + content + closingTags;
@@ -192,7 +193,7 @@ public class FriendPanel extends FixedWidthPanel {
 
         String content = "";
 
-        content += "<p><span style = 'color:white'>XP:</span> +" + QuantityFormatter.formatNumber(result.getOverall().getExperience()) + "</p>";
+        content += "<p><span style = 'color:white'>XP:</span> +" + QuantityFormatter.formatNumber(result.getSkill(HiscoreSkill.OVERALL).getExperience()) + "</p>";
         content += "<p><span style = 'color:white'>KC:</span> +" + QuantityFormatter.formatNumber(HiscoreUtil.sumNonSkillKc(result)) + "</p>";
 
         return openingTags + content + closingTags;

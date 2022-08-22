@@ -114,7 +114,11 @@ public class Friend {
             // skip this skill if it is null in the base result
             if ((baseSkill = baseHiscoreResult.getSkill(hiscoreSkill)) == null) continue;
 
-            // if base is not null but new is null then return invalid
+            // skip this skill if it is zero in the base result
+            if((baseSkill.getExperience() == -1L ||
+                    (hiscoreSkill.getType() != HiscoreSkillType.SKILL && baseSkill.getLevel() == -1))) continue;
+
+            // if base is not zero and new is null then return invalid (depends on prior if statement
             if ((newSkill = newHiscoreResult.getSkill(hiscoreSkill)) == null)
             {
                 log.warn("{} rejected for merge due to HiscoreSkill {} being null.", friend.getName(), hiscoreSkill.getName());
@@ -209,11 +213,11 @@ public class Friend {
      */
     public long xpGainedSince(Instant instant, Period tolerance)
     {
-        long currentTotalXp = getMostRecentResult().getOverall().getExperience();
+        long currentTotalXp = getMostRecentResult().getSkill(HiscoreSkill.OVERALL).getExperience();
 
         Optional<HiscoreResult> baseSnapshot = getSnapshotAt(instant, tolerance);
 
-        return baseSnapshot.map(hiscoreResult -> currentTotalXp - hiscoreResult.getOverall().getExperience()).orElse(0L);
+        return baseSnapshot.map(hiscoreResult -> currentTotalXp - hiscoreResult.getSkill(HiscoreSkill.OVERALL).getExperience()).orElse(0L);
     }
 
     /**
@@ -228,7 +232,7 @@ public class Friend {
      */
     public long xpGainedInTheLast(Period period, Period tolerance)
     {
-        if(period.isZero()) return getMostRecentResult().getOverall().getExperience();
+        if(period.isZero()) return getMostRecentResult().getSkill(HiscoreSkill.OVERALL).getExperience();
 
         return xpGainedSince(Instant.now().minus(period), tolerance);
     }

@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Experience;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
-import static net.runelite.client.hiscore.HiscoreSkill.OVERALL;
+import static net.runelite.client.hiscore.HiscoreSkill.*;
 import net.runelite.client.hiscore.HiscoreSkillType;
 import net.runelite.client.hiscore.Skill;
 import net.runelite.client.ui.FontManager;
@@ -125,19 +125,19 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
         if (skill == null)
         {
             double combatLevel = Experience.getCombatLevelPrecise(
-                    result.getAttack().getLevel(),
-                    result.getStrength().getLevel(),
-                    result.getDefence().getLevel(),
-                    result.getHitpoints().getLevel(),
-                    result.getMagic().getLevel(),
-                    result.getRanged().getLevel(),
-                    result.getPrayer().getLevel()
+                    result.getSkill(ATTACK).getLevel(),
+                    result.getSkill(STRENGTH).getLevel(),
+                    result.getSkill(DEFENCE).getLevel(),
+                    result.getSkill(HITPOINTS).getLevel(),
+                    result.getSkill(MAGIC).getLevel(),
+                    result.getSkill(RANGED).getLevel(),
+                    result.getSkill(PRAYER).getLevel()
             );
 
-            double combatExperience = result.getAttack().getExperience()
-                    + result.getStrength().getExperience() + result.getDefence().getExperience()
-                    + result.getHitpoints().getExperience() + result.getMagic().getExperience()
-                    + result.getRanged().getExperience() + result.getPrayer().getExperience();
+            double combatExperience = result.getSkill(ATTACK).getExperience()
+                    + result.getSkill(STRENGTH).getExperience() + result.getSkill(DEFENCE).getExperience()
+                    + result.getSkill(HITPOINTS).getExperience() + result.getSkill(MAGIC).getExperience()
+                    + result.getSkill(RANGED).getExperience() + result.getSkill(PRAYER).getExperience();
 
             content += "<p><span style = 'color:white'>Combat</span></p>";
             content += "<p><span style = 'color:white'>Exact Combat Level:</span> " + QuantityFormatter.formatNumber(combatLevel) + "</p>";
@@ -149,93 +149,29 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
             {
                 case CLUE_SCROLL_ALL:
                 {
-                    String allRank = (result.getClueScrollAll().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollAll().getRank());
-                    String beginnerRank = (result.getClueScrollBeginner().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollBeginner().getRank());
-                    String easyRank = (result.getClueScrollEasy().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollEasy().getRank());
-                    String mediumRank = (result.getClueScrollMedium().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollMedium().getRank());
-                    String hardRank = (result.getClueScrollHard().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollHard().getRank());
-                    String eliteRank = (result.getClueScrollElite().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollElite().getRank());
-                    String masterRank = (result.getClueScrollMaster().getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(result.getClueScrollMaster().getRank());
-                    String all = (result.getClueScrollAll().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollAll().getLevel()));
-                    String beginner = (result.getClueScrollBeginner().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollBeginner().getLevel()));
-                    String easy = (result.getClueScrollEasy().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollEasy().getLevel()));
-                    String medium = (result.getClueScrollMedium().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollMedium().getLevel()));
-                    String hard = (result.getClueScrollHard().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollHard().getLevel()));
-                    String elite = (result.getClueScrollElite().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollElite().getLevel()));
-                    String master = (result.getClueScrollMaster().getLevel() == -1 ? "0" : QuantityFormatter.formatNumber(result.getClueScrollMaster().getLevel()));
                     content += "<p><span style = 'color:white'>Clues</span></p>";
-                    content += "<p><span style = 'color:white'>All:</span> " + all + " <span style = 'color:white'>Rank:</span> " + allRank + "</p>";
-                    content += "<p><span style = 'color:white'>Beginner:</span> " + beginner + " <span style = 'color:white'>Rank:</span> " + beginnerRank + "</p>";
-                    content += "<p><span style = 'color:white'>Easy:</span> " + easy + " <span style = 'color:white'>Rank:</span> " + easyRank + "</p>";
-                    content += "<p><span style = 'color:white'>Medium:</span> " + medium + " <span style = 'color:white'>Rank:</span> " + mediumRank + "</p>";
-                    content += "<p><span style = 'color:white'>Hard:</span> " + hard + " <span style = 'color:white'>Rank:</span> " + hardRank + "</p>";
-                    content += "<p><span style = 'color:white'>Elite:</span> " + elite + " <span style = 'color:white'>Rank:</span> " + eliteRank + "</p>";
-                    content += "<p><span style = 'color:white'>Master:</span> " + master + " <span style = 'color:white'>Rank:</span> " + masterRank + "</p>";
+                    content += buildClueLine(result, "All", CLUE_SCROLL_ALL);
+                    content += buildClueLine(result, "Beginner", CLUE_SCROLL_BEGINNER);
+                    content += buildClueLine(result, "Easy", CLUE_SCROLL_EASY);
+                    content += buildClueLine(result, "Medium", CLUE_SCROLL_MEDIUM);
+                    content += buildClueLine(result, "Hard", CLUE_SCROLL_HARD);
+                    content += buildClueLine(result, "Elite", CLUE_SCROLL_ELITE);
+                    content += buildClueLine(result, "Master", CLUE_SCROLL_MASTER);
                     break;
                 }
                 case BOUNTY_HUNTER_ROGUE:
-                {
-                    Skill bountyHunterRogue = result.getBountyHunterRogue();
-                    String rank = (bountyHunterRogue.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(bountyHunterRogue.getRank());
-                    content += "<p><span style = 'color:white'>Bounty Hunter - Rogue</span></p>";
-                    content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
-                    if (bountyHunterRogue.getLevel() > -1)
-                    {
-                        content += "<p><span style = 'color:white'>Score:</span> " + QuantityFormatter.formatNumber(bountyHunterRogue.getLevel()) + "</p>";
-                    }
-                    break;
-                }
                 case BOUNTY_HUNTER_HUNTER:
-                {
-                    Skill bountyHunterHunter = result.getBountyHunterHunter();
-                    String rank = (bountyHunterHunter.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(bountyHunterHunter.getRank());
-                    content += "<p><span style = 'color:white'>Bounty Hunter - Hunter</span></p>";
-                    content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
-                    if (bountyHunterHunter.getLevel() > -1)
-                    {
-                        content += "<p><span style = 'color:white'>Score:</span> " + QuantityFormatter.formatNumber(bountyHunterHunter.getLevel()) + "</p>";
-                    }
-                    break;
-                }
+                case PVP_ARENA_RANK:
                 case LAST_MAN_STANDING:
-                {
-                    Skill lastManStanding = result.getLastManStanding();
-                    String rank = (lastManStanding.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(lastManStanding.getRank());
-                    content += "<p><span style = 'color:white'>Last Man Standing</span></p>";
-                    content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
-                    if (lastManStanding.getLevel() > -1)
-                    {
-                        content += "<p><span style = 'color:white'>Score:</span> " + QuantityFormatter.formatNumber(lastManStanding.getLevel()) + "</p>";
-                    }
-                    break;
-                }
                 case SOUL_WARS_ZEAL:
-                {
-                    Skill soulWarsZeal = result.getSoulWarsZeal();
-                    String rank = (soulWarsZeal.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(soulWarsZeal.getRank());
-                    content += "<p><span style = 'color:white'>Soul Wars Zeal</span></p>";
-                    content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
-                    if (soulWarsZeal.getLevel() > -1)
-                    {
-                        content += "<p><span style = 'color:white'>Score:</span> " + QuantityFormatter.formatNumber(soulWarsZeal.getLevel()) + "</p>";
-                    }
-                    break;
-                }
                 case RIFTS_CLOSED:
                 {
-                    Skill riftsClosed = result.getRiftsClosed();
-                    String rank = (riftsClosed.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(riftsClosed.getRank());
-                    content += "<p><span style = 'color:white'>Rifts closed</span></p>";
-                    content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
-                    if (riftsClosed.getLevel() > -1)
-                    {
-                        content += "<p><span style = 'color:white'>Rifts:</span> " + QuantityFormatter.formatNumber(riftsClosed.getLevel()) + "</p>";
-                    }
+                    content += buildMinigameTooltip(result.getSkill(skill), skill);
                     break;
                 }
                 case LEAGUE_POINTS:
                 {
-                    Skill leaguePoints = result.getLeaguePoints();
+                    Skill leaguePoints = result.getSkill(LEAGUE_POINTS);
                     String rank = (leaguePoints.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(leaguePoints.getRank());
                     content += "<p><span style = 'color:white'>League Points</span></p>";
                     content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
@@ -335,6 +271,31 @@ public abstract class AbstractHiscorePanel extends FixedWidthPanel
         }
 
         return openingTags + content + closingTags;
+    }
+
+    private String buildMinigameTooltip(Skill s, HiscoreSkill hiscoreSkill)
+    {
+        String rank = (s.getRank() == -1) ? "Unranked" : QuantityFormatter.formatNumber(s.getRank());
+        String content = "";
+        content += "<p><span style = 'color:white'>" + hiscoreSkill.getName() + "</span></p>";
+        content += "<p><span style = 'color:white'>Rank:</span> " + rank + "</p>";
+        if (s.getLevel() > -1)
+        {
+            content += "<p><span style = 'color:white'>Score:</span> " + QuantityFormatter.formatNumber(s.getLevel()) + "</p>";
+        }
+        return content;
+    }
+
+    private String buildClueLine(HiscoreResult result, String name, HiscoreSkill skill)
+    {
+        Skill sk = result.getSkill(skill);
+        String count = sk.getLevel() == -1
+                ? "0"
+                : QuantityFormatter.formatNumber(sk.getLevel());
+        String rank = sk.getRank() == -1
+                ? "Unranked"
+                : QuantityFormatter.formatNumber(sk.getRank());
+        return "<p><span style = 'color:white'>" + name + ":</span> " + count + " <span style = 'color:white'>Rank:</span> " + rank + "</p>";
     }
 
     /**

@@ -41,6 +41,7 @@ import net.runelite.client.hiscore.HiscoreResult;
 @Slf4j
 public class TrackerDataStore
 {
+    public static final Type MAP_TYPE = new TypeToken<Map<String, Friend>>() {}.getType();
     private final ConfigManager configManager;
 
     @Inject
@@ -66,13 +67,13 @@ public class TrackerDataStore
     {
         Gson gson = buildGson();
 
-        Type mapType = new TypeToken<Map<String, Friend>>(){}.getType();
+        String friendsJson;
 
         try
         {
-            String friendsJson = configManager.getConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME, buildConfigKey(accountHash));
+            friendsJson = configManager.getConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME, buildConfigKey(accountHash));
 
-            Map<String, Friend> friends = gson.fromJson(friendsJson, mapType);
+            Map<String, Friend> friends = gson.fromJson(friendsJson, MAP_TYPE);
 
             return Optional.of(friends);
         }
@@ -88,11 +89,9 @@ public class TrackerDataStore
     {
         Gson gson = buildGson();
 
-        Type mapType = new TypeToken<Map<String, Friend>>(){}.getType();
-
         configManager.setConfiguration(FriendTrackerPlugin.CONFIG_GROUP_NAME,
                 buildConfigKey(accountHash),
-                gson.toJson(friends, mapType));
+                gson.toJson(friends, MAP_TYPE));
     }
 
 }

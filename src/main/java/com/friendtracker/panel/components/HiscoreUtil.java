@@ -25,6 +25,9 @@
 package com.friendtracker.panel.components;
 
 import com.google.common.base.CaseFormat;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.hiscore.HiscoreResult;
 import net.runelite.client.hiscore.HiscoreSkill;
@@ -76,28 +79,28 @@ public class HiscoreUtil
      */
     public static HiscoreResult getDifference(HiscoreResult highResult, HiscoreResult lowResult)
     {
-        HiscoreResult result = new HiscoreResult();
+        Map<HiscoreSkill, Skill> skills = new EnumMap<>(HiscoreSkill.class);
+        String player = highResult.getPlayer();
 
         for(HiscoreSkill hiscoreSkill : HiscoreSkill.values())
         {
             Skill highSkill = highResult.getSkill(hiscoreSkill);
             Skill lowSkill = lowResult.getSkill(hiscoreSkill);
 
-            Skill skill = getDifference(highSkill, lowSkill);
+            Skill skill;
+            if(highSkill != null && lowSkill != null)
+            {
+                skill = getDifference(highSkill, lowSkill);
+            }
+            else
+            {
+                skill = null;
+            }
 
-            String fieldName = HiscoreUtil.hiscoreSkillToHiscoreResultSkill(hiscoreSkill.name());
-            try
-            {
-                HiscoreResult.class.getMethod("set" + StringUtils.capitalize(fieldName), Skill.class)
-                        .invoke(result, skill);
-            }
-            catch (Exception e)
-            {
-                log.error("Failed to set {} for {} during deserialization. Exception: {}", fieldName, result.getPlayer(), e.getStackTrace());
-            }
+            skills.put(hiscoreSkill,skill);
         }
 
-        return result;
+        return new HiscoreResult(player, skills);
     }
 
     /**
@@ -149,7 +152,8 @@ public class HiscoreUtil
                     (hiscoreSkill.getName().contains("Clue Scrolls") && !hiscoreSkill.equals(HiscoreSkill.CLUE_SCROLL_ALL))
             ) continue;
 
-            int level = result.getSkill(hiscoreSkill).getLevel();
+            Skill skill = result.getSkill(hiscoreSkill);
+            int level =  skill != null ? skill.getLevel() : 0;
 
             totalKc += level == -1 ? 0 : level;
         }

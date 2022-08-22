@@ -162,13 +162,13 @@ public class HiscorePanel extends AbstractHiscorePanel
                 if (result.getPlayer() != null)
                 {
                     int combatLevel = Experience.getCombatLevel(
-                            result.getAttack().getLevel(),
-                            result.getStrength().getLevel(),
-                            result.getDefence().getLevel(),
-                            result.getHitpoints().getLevel(),
-                            result.getMagic().getLevel(),
-                            result.getRanged().getLevel(),
-                            result.getPrayer().getLevel()
+                            result.getSkill(ATTACK).getLevel(),
+                            result.getSkill(STRENGTH).getLevel(),
+                            result.getSkill(DEFENCE).getLevel(),
+                            result.getSkill(HITPOINTS).getLevel(),
+                            result.getSkill(MAGIC).getLevel(),
+                            result.getSkill(RANGED).getLevel(),
+                            result.getSkill(PRAYER).getLevel()
                     );
                     label.setText(Integer.toString(combatLevel));
                 }
